@@ -1,0 +1,9 @@
+@import url('Custom.css');
+.App-Body{
+    background-color: var(--pencil);
+    background-size: 100vh;
+}
+
+p{
+    color: antiquewhite;
+}
