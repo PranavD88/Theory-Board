@@ -1,16 +1,10 @@
 import React from "react";
-import logo from "./logo.svg";
+import Header from "./Header";
 import "./App.css";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>My Knowledge Management System</h1>
-        <p>Frontend is working!</p>
-      </header>
-    </div>
+    <Header></Header>
   );
 }
-
 export default App;
