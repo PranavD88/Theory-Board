@@ -3,13 +3,18 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-interface AuthRequest extends Request {
-  userId?: number;
+declare module "express-serve-static-core" {
+  interface Request {
+    userId?: number;
+  }
 }
 
-const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.cookies.token;
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  if (!token) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
