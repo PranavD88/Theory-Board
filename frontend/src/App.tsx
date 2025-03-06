@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import Body from "./components/Body";
 
 const App: React.FC = () => {
@@ -29,11 +30,20 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Redirect to main page if already logged in */}
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginPage setIsAuthenticated={setIsAuthenticated} />} />
+        <Route 
+          path="/login" 
+          element={isAuthenticated ? <Navigate to="/" /> : <LoginPage setIsAuthenticated={setIsAuthenticated} />} 
+        />
         
-        {/* Pass setIsAuthenticated to Body */}
-        <Route path="/" element={isAuthenticated ? <Body setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />} />
+        <Route 
+          path="/register" 
+          element={isAuthenticated ? <Navigate to="/" /> : <RegisterPage />} 
+        />
+
+        <Route 
+          path="/" 
+          element={isAuthenticated ? <Body setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />} 
+        />
       </Routes>
     </Router>
   );
