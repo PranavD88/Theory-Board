@@ -1,5 +1,5 @@
 
-@import url('Custom.css');
+@import "./components/Custom.css";
 .App {
   text-align: center;
 }

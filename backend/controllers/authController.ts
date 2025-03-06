@@ -122,9 +122,7 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 
 // Logout User
 const logout = (req: Request, res: Response): void => {
-  console.log("Logging out user...");
-  res.clearCookie("token");
-  res.json({ message: "Logged out successfully" });
+  res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "strict" });
+  res.status(200).json({ message: "Logged out successfully" });
 };
-
 export { register, login, getUser, logout };
