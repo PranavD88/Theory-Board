@@ -12,9 +12,7 @@ const TextEditor: React.FC<TextEditorProps> = ({ isOpen }) => {
     if (isOpen) {
       fetch("http://localhost:5000/api/notes", { credentials: "include" })
         .then((res) => res.json())
-        .then((data) => {
-          setContent(data.content || ""); // Set the loaded content
-        })
+        .then((data) => setContent(data.content || ""))
         .catch((err) => console.error("Error loading note:", err));
     }
   }, [isOpen]);
@@ -40,6 +38,63 @@ const TextEditor: React.FC<TextEditorProps> = ({ isOpen }) => {
     }
   };
 
+  // Export note function
+  const exportNote = async (format: string) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/notes/export/${format}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export note");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `note.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error exporting note:", error);
+      alert("Failed to export note.");
+    }
+  };
+
+  const importNote = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/notes/import", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to import note");
+      }
+
+      const updatedNoteResponse = await fetch("http://localhost:5000/api/notes", {
+        credentials: "include",
+      });
+      const updatedNoteData = await updatedNoteResponse.json();
+      setContent(updatedNoteData.content || "");
+
+      alert("Note imported successfully!");
+    } catch (error) {
+      console.error("Error importing note:", error);
+      alert("Failed to import note.");
+    }
+  };
+
   if (!isOpen) {
     return null;
   }
@@ -52,7 +107,19 @@ const TextEditor: React.FC<TextEditorProps> = ({ isOpen }) => {
         onChange={(e) => setContent(e.target.value)}
         placeholder="Start typing..."
       />
-      <button onClick={saveNote} style={styles.saveButton}>Save</button>
+
+      <div style={styles.buttonContainer}>
+        <button onClick={saveNote} style={styles.saveButton}>Save</button>
+
+        <button onClick={() => exportNote("json")} style={styles.exportButton}>Export JSON</button>
+        <button onClick={() => exportNote("docx")} style={styles.exportButton}>Export DOCX</button>
+        <button onClick={() => exportNote("pdf")} style={styles.exportButton}>Export PDF</button>
+
+        <label style={styles.importLabel}>
+          Import File
+          <input type="file" accept=".json,.docx" onChange={importNote} style={styles.importInput} />
+        </label>
+      </div>
     </div>
   );
 };
@@ -76,8 +143,12 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid #415A77",
     borderRadius: "5px",
   },
-  saveButton: {
+  buttonContainer: {
     marginTop: "10px",
+    display: "flex",
+    gap: "10px",
+  },
+  saveButton: {
     padding: "10px 20px",
     backgroundColor: "#778DA9",
     color: "#0D1B2A",
@@ -85,6 +156,28 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "5px",
     cursor: "pointer",
     fontSize: "16px",
+  },
+  exportButton: {
+    padding: "10px 15px",
+    backgroundColor: "#415A77",
+    color: "#E0E1DD",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  importLabel: {
+    display: "inline-block",
+    padding: "10px 15px",
+    backgroundColor: "#E0E1DD",
+    color: "#1B263B",
+    border: "1px solid #415A77",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  importInput: {
+    display: "none",
   },
 };
 
