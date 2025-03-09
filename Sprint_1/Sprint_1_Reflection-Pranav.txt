@@ -1,0 +1,1 @@
+During Sprint 1, my primary contribution to the project was to create the foundation of our project, mainly being the frontend and the backend and I linked the two together.
