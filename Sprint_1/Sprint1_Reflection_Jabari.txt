@@ -1,0 +1,20 @@
+This project provided me with the opportunity to take on dual roles as an organizer and a developer. Using ClickUp, 
+I managed and organized the development plans, breaking down tasks, setting deadlines, and tracking progress to 
+ensure the team stayed on track. On the development side, I focused on creating a version of the text editor, a 
+critical component of the project. This required me to learn a new programming language and framework, which was 
+both challenging and rewarding.
+
+The biggest hurdle I faced was setting up and understanding the new language and framework. It took time to adapt, 
+but I eventually gained confidence in branching properly from the master repository and coding with TypeScript. 
+These skills not only helped me complete my tasks but also deepened my understanding of version control and 
+type-safe programming. However, I encountered significant difficulties with the Node.js file setup. A week was 
+spent troubleshooting installation errors, which delayed my progress and highlighted gaps in my knowledge.
+
+In retrospect, I could have improved by seeking more detailed guidance on installing and configuring critical files. 
+Asking for help earlier would have saved time and allowed me to focus more on development. This experience taught me 
+the importance of collaboration and not hesitating to ask questions when faced with unfamiliar challenges.
+
+Moving forward, I aim to strengthen my understanding of file structures and setup processes, particularly for 
+technologies like Node.js. I also plan to balance my time more effectively between project management and development 
+tasks. This project was a valuable learning experience, helping me grow both technically and personally. By reflecting 
+on these lessons, I feel better prepared to tackle future challenges and continue improving as a developer.
