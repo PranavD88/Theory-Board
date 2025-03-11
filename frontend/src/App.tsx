@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import Body from "./components/Body";
+import GraphView from "./components/GraphView";
+import MenuButton from "./components/MenuButton";
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check if user is logged in on first load
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -34,15 +34,22 @@ const App: React.FC = () => {
           path="/login" 
           element={isAuthenticated ? <Navigate to="/" /> : <LoginPage setIsAuthenticated={setIsAuthenticated} />} 
         />
-        
         <Route 
           path="/register" 
           element={isAuthenticated ? <Navigate to="/" /> : <RegisterPage />} 
         />
-
-        <Route 
-          path="/" 
-          element={isAuthenticated ? <Body setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />} 
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
+                <GraphView />
+                <MenuButton setIsAuthenticated={setIsAuthenticated} />
+              </div>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
       </Routes>
     </Router>
