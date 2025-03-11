@@ -154,15 +154,17 @@ const GraphView: React.FC = () => {
 // Styles
 const styles: Record<string, React.CSSProperties> = {
     graphContainer: {
-        width: "100%",
-        height: "500px",
+        width: "100vw",
+        height: "100vh",
         backgroundColor: "#1B263B",
-        position: "relative",
+        position: "absolute",
+        top: 0,
+        left: 0,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
-        zIndex: 10,
+        zIndex: 1,
     },
     cyContainer: {
         width: "100%",
@@ -170,15 +172,21 @@ const styles: Record<string, React.CSSProperties> = {
         position: "absolute",
         left: "0",
         top: "0",
-        zIndex: 11,
+        zIndex: 2,
     },
     notePreview: {
+        position: "absolute",
+        bottom: "20px",
+        left: "50%",
+        transform: "translateX(-50%)",
         backgroundColor: "#0D1B2A",
         color: "#E0E1DD",
         padding: "10px",
         borderRadius: "5px",
         textAlign: "center",
-        marginTop: "10px",
+        width: "250px",
+        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
+        zIndex: 10,
     },
 };
 
