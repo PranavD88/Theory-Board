@@ -5,7 +5,7 @@ import pool from "../db";
 export const createNote = async (req: Request, res: Response) => { 
     try {
         const { title, content } = req.body;
-        const userId = req.userId; // Ensure userId is available from authMiddleware
+        const userId = req.userId;
 
         if (!title.trim()) {
             res.status(400).json({ error: "Title is required" });
@@ -49,7 +49,7 @@ export const getNote = async (req: Request, res: Response) => {
     }
 };
 
-// Get all notes (only the logged-in user's notes)
+// Get all notes
 export const getAllNotes = async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -60,6 +60,35 @@ export const getAllNotes = async (req: Request, res: Response) => {
         res.json(result.rows);
     } catch (error) {
         console.error("Error retrieving notes:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+// Update an existing note
+export const updateNote = async (req: Request, res: Response) => {
+    try {
+        const noteId = parseInt(req.params.id, 10);
+        const userId = req.userId;
+        const { title, content } = req.body;
+
+        if (isNaN(noteId)) {
+            res.status(400).json({ error: "Invalid note ID" });
+            return;
+        }
+
+        const existingNote = await pool.query("SELECT * FROM notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
+
+        if (existingNote.rows.length === 0) {
+            res.status(404).json({ error: "Note not found or unauthorized" });
+            return;
+        }
+
+        // Update the note
+        await pool.query("UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4", [title, content, noteId, userId]);
+
+        res.json({ message: "Note updated successfully" });
+    } catch (error) {
+        console.error("Error updating note:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -75,7 +104,6 @@ export const linkNotes = async (req: Request, res: Response) => {
             return;
         }
 
-        // Ensure both notes belong to the logged-in user
         const fromNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [from_note_id, userId]);
         const toNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [to_note_id, userId]);
 
@@ -138,7 +166,6 @@ export const deleteNote = async (req: Request, res: Response) => {
             return;
         }
 
-        // Ensure note belongs to the logged-in user
         const note = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
 
         if (note.rows.length === 0) {
@@ -146,7 +173,6 @@ export const deleteNote = async (req: Request, res: Response) => {
             return;
         }
 
-        // Delete note and its links
         await pool.query("DELETE FROM note_links WHERE from_note_id = $1 OR to_note_id = $1", [noteId]);
         await pool.query("DELETE FROM notes WHERE id = $1", [noteId]);
 
