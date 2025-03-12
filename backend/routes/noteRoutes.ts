@@ -1,7 +1,16 @@
 import express, { Request, Response } from "express";
 import pool from "../db";
 import authMiddleware from "../middleware/authMiddleware";
-import { createNote, getNote, getAllNotes, linkNotes, getGraphData, deleteNote, updateNote } from "../controllers/noteController";
+import { 
+  createNote, 
+  getNote, 
+  getAllNotes, 
+  linkNotes, 
+  getGraphData, 
+  deleteNote, 
+  updateNote, 
+  unlinkNotes 
+} from "../controllers/noteController";
 
 const router = express.Router();
 
@@ -9,7 +18,6 @@ router.get("/", authMiddleware, async (req: Request, res: Response): Promise<voi
     try {
         const userId = req.userId;
         const result = await pool.query("SELECT id, title, content FROM notes WHERE user_id = $1", [userId]);
-
         res.json(result.rows);
     } catch (error) {
         console.error("Error fetching user's notes:", error);
@@ -43,35 +51,11 @@ router.post("/", authMiddleware, async (req: Request, res: Response): Promise<vo
 });
 
 router.put("/:id", authMiddleware, updateNote);
-
-router.get("/graph", authMiddleware, async (req: Request, res: Response) => {
-    try {
-        const userId = req.userId;
-
-        const nodesQuery = await pool.query("SELECT id, title FROM notes WHERE user_id = $1", [userId]);
-
-        const linksQuery = await pool.query(
-            `SELECT from_note_id, to_note_id 
-             FROM note_links 
-             WHERE from_note_id IN (SELECT id FROM notes WHERE user_id = $1) 
-             OR to_note_id IN (SELECT id FROM notes WHERE user_id = $1)`,
-            [userId]
-        );
-
-        res.json({
-            nodes: nodesQuery.rows,
-            links: linksQuery.rows,
-        });
-    } catch (error) {
-        console.error("Error fetching graph data:", error);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
+router.get("/graph", authMiddleware, getGraphData);
 router.post("/create", authMiddleware, createNote);
 router.get("/all", authMiddleware, getAllNotes);
-router.get("/graph", authMiddleware, getGraphData);
 router.post("/link", authMiddleware, linkNotes);
+router.delete("/unlink", authMiddleware, unlinkNotes);
 router.get("/:id", authMiddleware, getNote);
 router.delete("/:id", authMiddleware, deleteNote);
 

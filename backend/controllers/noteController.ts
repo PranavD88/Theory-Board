@@ -136,6 +136,45 @@ export const linkNotes = async (req: Request, res: Response) => {
     }
 };
 
+// Unlink two notes
+export const unlinkNotes = async (req: Request, res: Response) => {
+    try {
+        const fromNoteId = parseInt(req.query.from_note_id as string, 10);
+        const toNoteId = parseInt(req.query.to_note_id as string, 10);
+        const userId = req.userId;
+
+        if (isNaN(fromNoteId) || isNaN(toNoteId)) {
+            res.status(400).json({ error: "Invalid note IDs" });
+            return;
+        }
+
+        // Ensure both notes belong to the logged-in user
+        const fromNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [fromNoteId, userId]);
+        const toNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [toNoteId, userId]);
+
+        if (fromNote.rows.length === 0 || toNote.rows.length === 0) {
+            res.status(400).json({ error: "One or both notes do not exist or unauthorized" });
+            return;
+        }
+
+        // Delete the link
+        const deleteResult = await pool.query(
+            "DELETE FROM note_links WHERE from_note_id = $1 AND to_note_id = $2",
+            [fromNoteId, toNoteId]
+        );
+
+        if (deleteResult.rowCount === 0) {
+            res.status(404).json({ error: "Link not found" });
+            return;
+        }
+
+        res.json({ message: "Link deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting link:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 // Get all notes with their connections
 export const getGraphData = async (req: Request, res: Response) => {
     try {

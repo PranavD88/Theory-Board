@@ -5,6 +5,7 @@ const GraphView: React.FC = () => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const [selectedNote, setSelectedNote] = useState<{ id: number; title: string; content: string } | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<{ source: string; target: string } | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
@@ -15,8 +16,6 @@ const GraphView: React.FC = () => {
       cyRef.current.destroy();
       cyRef.current = null;
     }
-
-    console.log("Initializing Cytoscape...");
 
     cyRef.current = cytoscape({
       container: graphContainerRef.current,
@@ -55,8 +54,6 @@ const GraphView: React.FC = () => {
       return;
     }
     if (!cyRef.current) return;
-
-    console.log("Updating graph with new data:", data);
     const cy = cyRef.current;
 
     cy.batch(() => {
@@ -76,14 +73,12 @@ const GraphView: React.FC = () => {
       cy.add([...nodes, ...edges]);
     });
 
-    // Run layout after adding elements
     cy.layout({ name: "cose", animate: true, fit: true, padding: 50 }).run();
 
     setTimeout(() => {
       cy.fit();
       cy.center();
       cy.resize();
-      console.log("Graph fully refreshed.");
     }, 1000);
   };
 
@@ -93,18 +88,18 @@ const GraphView: React.FC = () => {
     fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Graph data received:", data);
         updateGraph(data);
       })
       .catch((error) => console.error("Error fetching graph:", error));
   }, []);
 
-  // Handle node selection
+  // Handle node and edge selection
   useEffect(() => {
     if (!cyRef.current) return;
     const cy = cyRef.current;
 
     const handleNodeClick = (event: any) => {
+      setSelectedEdge(null);
       const nodeId = event.target.id().substring(1);
       fetch(`http://localhost:5000/api/notes/${nodeId}`, { credentials: "include" })
         .then((res) => res.json())
@@ -116,9 +111,18 @@ const GraphView: React.FC = () => {
         .catch((error) => console.error("Error fetching note:", error));
     };
 
+    const handleEdgeClick = (event: any) => {
+      setSelectedNote(null);
+      const edgeData = event.target.data();
+      setSelectedEdge({ source: edgeData.source, target: edgeData.target });
+    };
+
     cy.on("tap", "node", handleNodeClick);
+    cy.on("tap", "edge", handleEdgeClick);
+
     return () => {
       cy.off("tap", "node", handleNodeClick);
+      cy.off("tap", "edge", handleEdgeClick);
     };
   }, []);
 
@@ -135,6 +139,10 @@ const GraphView: React.FC = () => {
     if (response.ok) {
       alert("Note updated successfully!");
       setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
+      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
+        .then((res) => res.json())
+        .then(updateGraph)
+        .catch((error) => console.error("Error fetching graph:", error));
     } else {
       alert("Error updating note.");
     }
@@ -160,12 +168,37 @@ const GraphView: React.FC = () => {
     }
   };
 
+  // Handle unlinking a specific edge
+  const handleUnlinkEdge = async () => {
+    if (!selectedEdge) return;
+    const fromNoteId = selectedEdge.source.substring(1);
+    const toNoteId = selectedEdge.target.substring(1);
+    const response = await fetch(
+      `http://localhost:5000/api/notes/unlink?from_note_id=${fromNoteId}&to_note_id=${toNoteId}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
+
+    if (response.ok) {
+      alert("Link unlinked successfully!");
+      setSelectedEdge(null);
+      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
+        .then((res) => res.json())
+        .then(updateGraph)
+        .catch((error) => console.error("Error fetching graph:", error));
+    } else {
+      alert("Error unlinking connection.");
+    }
+  };
+
   return (
     <div style={styles.graphContainer}>
       <div ref={graphContainerRef} style={styles.cyContainer}></div>
       {selectedNote && (
         <div style={styles.notePreview}>
-          <h3>Edit Note</h3>
+          <h3 style={styles.noteTitle}>Edit Note</h3>
           <input
             type="text"
             value={editTitle}
@@ -177,8 +210,24 @@ const GraphView: React.FC = () => {
             onChange={(e) => setEditContent(e.target.value)}
             style={styles.textarea}
           />
-          <button onClick={handleUpdateNote} style={styles.saveButton}>Save</button>
-          <button onClick={handleDeleteNote} style={styles.deleteButton}>Delete</button>
+          <button onClick={handleUpdateNote} style={styles.saveButton}>
+            Save
+          </button>
+          <button onClick={handleDeleteNote} style={styles.deleteButton}>
+            Delete
+          </button>
+        </div>
+      )}
+      {selectedEdge && (
+        <div style={styles.notePreview}>
+          <h3 style={styles.noteTitle}>Unlink Connection</h3>
+          <p>
+            Unlink connection from note {selectedEdge.source.substring(1)} to note{" "}
+            {selectedEdge.target.substring(1)}
+          </p>
+          <button onClick={handleUnlinkEdge} style={styles.unlinkButton}>
+            Unlink
+          </button>
         </div>
       )}
     </div>
@@ -212,48 +261,64 @@ const styles: Record<string, React.CSSProperties> = {
     position: "absolute",
     top: "20px",
     right: "20px",
-    width: "300px",
-    maxHeight: "60vh",
+    width: "350px",
+    maxHeight: "70vh",
     overflowY: "auto",
     backgroundColor: "#0D1B2A",
     color: "#E0E1DD",
-    padding: "15px",
-    borderRadius: "5px",
-    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
+    padding: "20px",
+    borderRadius: "10px",
+    boxShadow: "0px 6px 10px rgba(0, 0, 0, 0.3)",
     zIndex: 10,
+  },
+  noteTitle: {
+    textAlign: "center",
+    fontSize: "18px",
+    fontWeight: "bold",
+    marginBottom: "10px",
   },
   input: {
     width: "94%",
-    padding: "8px",
+    padding: "10px",
     marginBottom: "10px",
-    borderRadius: "4px",
+    borderRadius: "6px",
     border: "1px solid #ccc",
   },
   textarea: {
     width: "94%",
-    height: "100px",
-    padding: "8px",
+    height: "150px",
+    padding: "10px",
     marginBottom: "10px",
-    borderRadius: "4px",
+    borderRadius: "6px",
     border: "1px solid #ccc",
   },
   saveButton: {
     width: "100%",
-    padding: "10px",
+    padding: "12px",
     backgroundColor: "#29A19C",
     color: "white",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
     marginBottom: "10px",
   },
   deleteButton: {
     width: "100%",
-    padding: "10px",
+    padding: "12px",
     backgroundColor: "red",
     color: "white",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    marginBottom: "10px",
+  },
+  unlinkButton: {
+    width: "100%",
+    padding: "12px",
+    backgroundColor: "#FF9900",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
     cursor: "pointer",
   },
 };
