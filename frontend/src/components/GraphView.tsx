@@ -4,7 +4,7 @@ import cytoscape from "cytoscape";
 const GraphView: React.FC = () => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-  const [selectedNote] = useState<{ title: string; content: string } | null>(null);
+  const [selectedNote, setSelectedNote] = useState<{ title: string; content: string } | null>(null);
 
   // Initialize Cytoscape
   const initializeCytoscape = () => {
@@ -77,7 +77,6 @@ const GraphView: React.FC = () => {
     // Run layout after adding elements
     cy.layout({ name: "cose", animate: true, fit: true, padding: 50 }).run();
 
-    // Force graph to refresh after layout completes
     setTimeout(() => {
       cy.fit();
       cy.center();
@@ -96,6 +95,27 @@ const GraphView: React.FC = () => {
         updateGraph(data);
       })
       .catch((error) => console.error("Error fetching graph:", error));
+  }, []);
+
+  // Handle node selection
+  useEffect(() => {
+    if (!cyRef.current) return;
+    const cy = cyRef.current;
+
+    const handleNodeClick = (event: any) => {
+      const nodeId = event.target.id().substring(1);
+      fetch(`http://localhost:5000/api/notes/${nodeId}`, { credentials: "include" })
+        .then((res) => res.json())
+        .then((data) => {
+          setSelectedNote(data);
+        })
+        .catch((error) => console.error("Error fetching note:", error));
+    };
+
+    cy.on("tap", "node", handleNodeClick);
+    return () => {
+      cy.off("tap", "node", handleNodeClick);
+    };
   }, []);
 
   // Handle graph resizing
@@ -120,7 +140,7 @@ const GraphView: React.FC = () => {
       {selectedNote && (
         <div style={styles.notePreview}>
           <h3>{selectedNote.title}</h3>
-          <p>{selectedNote.content}</p>
+          <p style={styles.noteContent}>{selectedNote.content}</p>
         </div>
       )}
     </div>
@@ -152,17 +172,22 @@ const styles: Record<string, React.CSSProperties> = {
   },
   notePreview: {
     position: "absolute",
-    bottom: "20px",
-    left: "50%",
-    transform: "translateX(-50%)",
+    top: "20px",
+    right: "20px",
+    width: "300px",
+    maxHeight: "60vh",
+    overflowY: "auto",
     backgroundColor: "#0D1B2A",
     color: "#E0E1DD",
-    padding: "10px",
+    padding: "15px",
     borderRadius: "5px",
-    textAlign: "center",
-    width: "250px",
     boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
     zIndex: 10,
+  },
+  noteContent: {
+    whiteSpace: "pre-wrap",
+    wordWrap: "break-word",
+    overflowWrap: "break-word",
   },
 };
 
