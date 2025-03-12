@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import GraphView from "./components/GraphView";
+import GraphView, { GraphViewHandles } from "./components/GraphView";
 import MenuButton from "./components/MenuButton";
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const graphRef = useRef<GraphViewHandles>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -43,8 +44,13 @@ const App: React.FC = () => {
           element={
             isAuthenticated ? (
               <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-                <GraphView />
-                <MenuButton setIsAuthenticated={setIsAuthenticated} />
+                <GraphView ref={graphRef} />
+                <MenuButton
+                  setIsAuthenticated={setIsAuthenticated}
+                  addNode={(newNote) => graphRef.current?.addNode(newNote)}
+                  addEdge={(fromNoteId, toNoteId) => graphRef.current?.addEdge(fromNoteId, toNoteId)}
+                  clearGraph={() => graphRef.current?.clearGraph()}
+                />
               </div>
             ) : (
               <Navigate to="/login" />

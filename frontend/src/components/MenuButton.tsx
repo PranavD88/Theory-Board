@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Menu } from "lucide-react";
 
-const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = ({ setIsAuthenticated }) => {
+interface MenuButtonProps {
+  setIsAuthenticated: (isAuth: boolean) => void;
+  addNode: (newNote: any) => void;
+  addEdge: (fromNoteId: number, toNoteId: number) => void;
+  clearGraph: () => void;
+}
+
+const MenuButton: React.FC<MenuButtonProps> = ({
+  setIsAuthenticated,
+  addNode,
+  addEdge,
+  clearGraph,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -9,7 +21,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
   const [selectedNote2, setSelectedNote2] = useState("");
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
 
-  // Memoized function to fetch notes
+  // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/api/notes/all", {
@@ -25,7 +37,6 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
 
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error("Invalid data format received");
-
       setNotes(data);
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -40,7 +51,10 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
   }, [isOpen, fetchNotes]);
 
   const handleCreateNote = async () => {
-    if (!title.trim()) return alert("Title is required");
+    if (!title.trim()) {
+      alert("Title is required");
+      return;
+    }
 
     const response = await fetch("http://localhost:5000/api/notes/create", {
       method: "POST",
@@ -56,9 +70,11 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     }
 
     if (response.ok) {
+      const newNote = await response.json();
       alert("Note created!");
       setTitle("");
       setContent("");
+      addNode(newNote);
       fetchNotes();
     } else {
       alert("Error creating note");
@@ -75,7 +91,10 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ from_note_id: selectedNote1, to_note_id: selectedNote2 }),
+      body: JSON.stringify({
+        from_note_id: selectedNote1,
+        to_note_id: selectedNote2,
+      }),
     });
 
     if (response.status === 401) {
@@ -86,6 +105,10 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
 
     if (response.ok) {
       alert("Notes linked successfully!");
+      addEdge(Number(selectedNote1), Number(selectedNote2));
+      fetchNotes();
+      setSelectedNote1("");
+      setSelectedNote2("");
     } else {
       alert("Error linking notes");
     }
@@ -100,6 +123,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
 
       if (!response.ok) throw new Error("Logout failed");
       setIsAuthenticated(false);
+      clearGraph();
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -169,7 +193,6 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
   );
 };
 
-// Styles
 const styles: Record<string, React.CSSProperties> = {
   menuContainer: {
     position: "absolute",
