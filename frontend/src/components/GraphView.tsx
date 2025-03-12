@@ -1,11 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import cytoscape from "cytoscape";
 
-const GraphView: React.FC = () => {
+export interface GraphViewHandles {
+  addNode: (newNote: any) => void;
+  addEdge: (fromNoteId: number, toNoteId: number) => void;
+  removeNode: (noteId: number) => void;
+  removeEdge: (fromNoteId: number, toNoteId: number) => void;
+  clearGraph: () => void;
+}
+
+type SelectedEdge = {
+  source: string;
+  target: string;
+  sourceLabel: string;
+  targetLabel: string;
+} | null;
+
+const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-  const [selectedNote, setSelectedNote] = useState<{ id: number; title: string; content: string } | null>(null);
-  const [selectedEdge, setSelectedEdge] = useState<{ source: string; target: string } | null>(null);
+  const [selectedNote, setSelectedNote] = useState<{
+    id: number;
+    title: string;
+    content: string;
+  } | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
@@ -47,7 +72,7 @@ const GraphView: React.FC = () => {
     });
   };
 
-  // Update the graph with new data
+  // Initial fetch only – complete graph load.
   const updateGraph = (data: any) => {
     if (!data || !data.nodes || !data.links) {
       console.error("Invalid graph data received:", data);
@@ -59,13 +84,13 @@ const GraphView: React.FC = () => {
     cy.batch(() => {
       cy.elements().remove();
 
-      // Map nodes
+      // Add nodes
       const nodes = data.nodes.map((note: any, index: number) => ({
         data: { id: `n${note.id}`, label: note.title },
         position: { x: index * 120, y: index * 80 },
       }));
 
-      // Map edges
+      // Add edges
       const edges = data.links.map((link: any) => ({
         data: { source: `n${link.from_note_id}`, target: `n${link.to_note_id}` },
       }));
@@ -82,7 +107,7 @@ const GraphView: React.FC = () => {
     }, 1000);
   };
 
-  // Fetch graph data and update Cytoscape
+  // Initial fetch of the graph data
   useEffect(() => {
     initializeCytoscape();
     fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
@@ -114,7 +139,14 @@ const GraphView: React.FC = () => {
     const handleEdgeClick = (event: any) => {
       setSelectedNote(null);
       const edgeData = event.target.data();
-      setSelectedEdge({ source: edgeData.source, target: edgeData.target });
+      const sourceNode = cy.getElementById(edgeData.source);
+      const targetNode = cy.getElementById(edgeData.target);
+      setSelectedEdge({
+        source: edgeData.source,
+        target: edgeData.target,
+        sourceLabel: sourceNode ? sourceNode.data("label") : edgeData.source,
+        targetLabel: targetNode ? targetNode.data("label") : edgeData.target,
+      });
     };
 
     cy.on("tap", "node", handleNodeClick);
@@ -126,7 +158,7 @@ const GraphView: React.FC = () => {
     };
   }, []);
 
-  // Handle note update
+  // Handle note update without full refresh
   const handleUpdateNote = async () => {
     if (!selectedNote) return;
     const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
@@ -139,16 +171,16 @@ const GraphView: React.FC = () => {
     if (response.ok) {
       alert("Note updated successfully!");
       setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
-      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
-        .then((res) => res.json())
-        .then(updateGraph)
-        .catch((error) => console.error("Error fetching graph:", error));
+      if (cyRef.current) {
+        const node = cyRef.current.getElementById(`n${selectedNote.id}`);
+        node.data("label", editTitle);
+      }
     } else {
       alert("Error updating note.");
     }
   };
 
-  // Handle note deletion
+  // Handle note deletion without full refresh
   const handleDeleteNote = async () => {
     if (!selectedNote) return;
     const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
@@ -158,40 +190,83 @@ const GraphView: React.FC = () => {
 
     if (response.ok) {
       alert("Note deleted successfully!");
+      if (cyRef.current) {
+        cyRef.current.getElementById(`n${selectedNote.id}`).remove();
+      }
       setSelectedNote(null);
-      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
-        .then((res) => res.json())
-        .then(updateGraph)
-        .catch((error) => console.error("Error fetching graph:", error));
     } else {
       alert("Error deleting note.");
     }
   };
 
-  // Handle unlinking a specific edge
+  // Handle unlinking an edge without full refresh
   const handleUnlinkEdge = async () => {
     if (!selectedEdge) return;
     const fromNoteId = selectedEdge.source.substring(1);
     const toNoteId = selectedEdge.target.substring(1);
     const response = await fetch(
       `http://localhost:5000/api/notes/unlink?from_note_id=${fromNoteId}&to_note_id=${toNoteId}`,
-      {
-        method: "DELETE",
-        credentials: "include",
-      }
+      { method: "DELETE", credentials: "include" }
     );
 
     if (response.ok) {
       alert("Link unlinked successfully!");
+      if (cyRef.current) {
+        cyRef.current.edges().forEach((edge) => {
+          if (
+            edge.source().id() === `n${fromNoteId}` &&
+            edge.target().id() === `n${toNoteId}`
+          ) {
+            edge.remove();
+          }
+        });
+      }
       setSelectedEdge(null);
-      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
-        .then((res) => res.json())
-        .then(updateGraph)
-        .catch((error) => console.error("Error fetching graph:", error));
     } else {
       alert("Error unlinking connection.");
     }
   };
+
+  // Expose incremental update functions to parent components
+  useImperativeHandle(ref, () => ({
+    addNode(newNote: any) {
+      if (cyRef.current) {
+        cyRef.current.add({
+          data: { id: `n${newNote.id}`, label: newNote.title },
+          position: { x: Math.random() * 500, y: Math.random() * 500 },
+        });
+      }
+    },
+    addEdge(fromNoteId: number, toNoteId: number) {
+      if (cyRef.current) {
+        cyRef.current.add({
+          data: { source: `n${fromNoteId}`, target: `n${toNoteId}` },
+        });
+      }
+    },
+    removeNode(noteId: number) {
+      if (cyRef.current) {
+        cyRef.current.getElementById(`n${noteId}`).remove();
+      }
+    },
+    removeEdge(fromNoteId: number, toNoteId: number) {
+      if (cyRef.current) {
+        cyRef.current.edges().forEach((edge) => {
+          if (
+            edge.source().id() === `n${fromNoteId}` &&
+            edge.target().id() === `n${toNoteId}`
+          ) {
+            edge.remove();
+          }
+        });
+      }
+    },
+    clearGraph() {
+      if (cyRef.current) {
+        cyRef.current.elements().remove();
+      }
+    },
+  }));
 
   return (
     <div style={styles.graphContainer}>
@@ -222,8 +297,8 @@ const GraphView: React.FC = () => {
         <div style={styles.notePreview}>
           <h3 style={styles.noteTitle}>Unlink Connection</h3>
           <p>
-            Unlink connection from note {selectedEdge.source.substring(1)} to note{" "}
-            {selectedEdge.target.substring(1)}
+            Unlink connection between "{selectedEdge.sourceLabel}" and "
+            {selectedEdge.targetLabel}"
           </p>
           <button onClick={handleUnlinkEdge} style={styles.unlinkButton}>
             Unlink
@@ -232,7 +307,7 @@ const GraphView: React.FC = () => {
       )}
     </div>
   );
-};
+});
 
 // Styles
 const styles: Record<string, React.CSSProperties> = {
