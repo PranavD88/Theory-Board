@@ -63,7 +63,7 @@ const GraphView: React.FC = () => {
       // Map nodes
       const nodes = data.nodes.map((note: any, index: number) => ({
         data: { id: `n${note.id}`, label: note.title },
-        position: { x: index * 120, y: index * 80 }, // Prevents overlap
+        position: { x: index * 120, y: index * 80 },
       }));
 
       // Map edges
@@ -74,10 +74,10 @@ const GraphView: React.FC = () => {
       cy.add([...nodes, ...edges]);
     });
 
-    // Run layout **after** adding elements
+    // Run layout after adding elements
     cy.layout({ name: "cose", animate: true, fit: true, padding: 50 }).run();
 
-    // Force graph to refresh **after** layout completes
+    // Force graph to refresh after layout completes
     setTimeout(() => {
       cy.fit();
       cy.center();

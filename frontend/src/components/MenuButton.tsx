@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Menu } from "lucide-react";
 
 const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = ({ setIsAuthenticated }) => {
@@ -9,17 +9,12 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
   const [selectedNote2, setSelectedNote2] = useState("");
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchNotes();
-    }
-  }, [isOpen]);
-
-  const fetchNotes = async () => {
+  // Memoized function to fetch notes
+  const fetchNotes = useCallback(async () => {
     try {
       const response = await fetch("http://localhost:5000/api/notes/all", {
         method: "GET",
-        credentials: "include", // 🔥 Ensure authentication cookies are sent
+        credentials: "include",
       });
 
       if (response.status === 401) {
@@ -29,16 +24,20 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
       }
 
       const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid data format received");
-      }
+      if (!Array.isArray(data)) throw new Error("Invalid data format received");
 
       setNotes(data);
     } catch (error) {
       console.error("Error fetching notes:", error);
-      setNotes([]); // Prevents breaking if an error occurs
+      setNotes([]);
     }
-  };
+  }, [setIsAuthenticated]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotes();
+    }
+  }, [isOpen, fetchNotes]);
 
   const handleCreateNote = async () => {
     if (!title.trim()) return alert("Title is required");
@@ -46,7 +45,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     const response = await fetch("http://localhost:5000/api/notes/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 Ensure authentication cookies are sent
+      credentials: "include",
       body: JSON.stringify({ title, content }),
     });
 
@@ -60,7 +59,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
       alert("Note created!");
       setTitle("");
       setContent("");
-      fetchNotes(); // Refresh notes after creation
+      fetchNotes();
     } else {
       alert("Error creating note");
     }
@@ -75,7 +74,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     const response = await fetch("http://localhost:5000/api/notes/link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 Ensure authentication cookies are sent
+      credentials: "include",
       body: JSON.stringify({ from_note_id: selectedNote1, to_note_id: selectedNote2 }),
     });
 
@@ -96,7 +95,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     try {
       const response = await fetch("http://localhost:5000/api/auth/logout", {
         method: "POST",
-        credentials: "include", // 🔥 Ensure authentication cookies are sent
+        credentials: "include",
       });
 
       if (!response.ok) throw new Error("Logout failed");
@@ -139,12 +138,11 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
             style={styles.select}
           >
             <option value="">Select Note 1</option>
-            {notes.length > 0 &&
-              notes.map((note) => (
-                <option key={note.id} value={note.id}>
-                  {note.title}
-                </option>
-              ))}
+            {notes.map((note) => (
+              <option key={note.id} value={note.id}>
+                {note.title}
+              </option>
+            ))}
           </select>
           <select
             value={selectedNote2}
@@ -152,12 +150,11 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
             style={styles.select}
           >
             <option value="">Select Note 2</option>
-            {notes.length > 0 &&
-              notes.map((note) => (
-                <option key={note.id} value={note.id}>
-                  {note.title}
-                </option>
-              ))}
+            {notes.map((note) => (
+              <option key={note.id} value={note.id}>
+                {note.title}
+              </option>
+            ))}
           </select>
           <button onClick={handleLinkNotes} style={styles.createButton}>
             Link
