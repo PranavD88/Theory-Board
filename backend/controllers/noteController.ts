@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import pool from "../db";
 
-// Create a new note (linked to the logged-in user)
+// Create a new note
 export const createNote = async (req: Request, res: Response) => { 
     try {
         const { title, content } = req.body;
@@ -24,7 +24,7 @@ export const createNote = async (req: Request, res: Response) => {
     }
 };
 
-// Get a single note by ID (only if it belongs to the logged-in user)
+// Get a single note by ID
 export const getNote = async (req: Request, res: Response) => {
     try {
         const noteId = parseInt(req.params.id, 10);
@@ -64,7 +64,7 @@ export const getAllNotes = async (req: Request, res: Response) => {
     }
 };
 
-// Link two notes together (only if both belong to the logged-in user)
+// Link two notes together
 export const linkNotes = async (req: Request, res: Response) => {
     try {
         const { from_note_id, to_note_id } = req.body;
@@ -108,7 +108,7 @@ export const linkNotes = async (req: Request, res: Response) => {
     }
 };
 
-// Get all notes with their connections (only for the logged-in user)
+// Get all notes with their connections
 export const getGraphData = async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -127,7 +127,7 @@ export const getGraphData = async (req: Request, res: Response) => {
     }
 };
 
-// Delete a note and its connections (only if it belongs to the logged-in user)
+// Delete a note and its connections
 export const deleteNote = async (req: Request, res: Response) => {
     try {
         const noteId = parseInt(req.params.id, 10);

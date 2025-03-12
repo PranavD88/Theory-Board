@@ -11,7 +11,7 @@ router.get("/", authMiddleware, async (req: Request, res: Response): Promise<voi
         const userId = req.userId;
         const result = await pool.query("SELECT id, title, content FROM notes WHERE user_id = $1", [userId]);
 
-        res.json(result.rows); // Always return an array of notes
+        res.json(result.rows);
     } catch (error) {
         console.error("Error fetching user's notes:", error);
         res.status(500).json({ message: "Server error" });
@@ -44,7 +44,7 @@ router.post("/", authMiddleware, async (req: Request, res: Response): Promise<vo
     }
 });
 
-// Get the full graph of notes (filtered by user)
+// Get the full graph of notes
 router.get("/graph", authMiddleware, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -69,7 +69,7 @@ router.get("/graph", authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// Graph-based note system (New Endpoints)
+// Graph-based note system
 router.post("/create", authMiddleware, createNote);
 router.get("/all", authMiddleware, getAllNotes);
 router.get("/graph", authMiddleware, getGraphData);
