@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 
 const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = ({ setIsAuthenticated }) => {
@@ -9,13 +9,34 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
   const [selectedNote2, setSelectedNote2] = useState("");
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
 
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotes();
+    }
+  }, [isOpen]);
+
   const fetchNotes = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/notes/all");
+      const response = await fetch("http://localhost:5000/api/notes/all", {
+        method: "GET",
+        credentials: "include", // 🔥 Ensure authentication cookies are sent
+      });
+
+      if (response.status === 401) {
+        console.error("Unauthorized access - Logging out");
+        setIsAuthenticated(false);
+        return;
+      }
+
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid data format received");
+      }
+
       setNotes(data);
     } catch (error) {
       console.error("Error fetching notes:", error);
+      setNotes([]); // Prevents breaking if an error occurs
     }
   };
 
@@ -25,13 +46,21 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     const response = await fetch("http://localhost:5000/api/notes/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 Ensure authentication cookies are sent
       body: JSON.stringify({ title, content }),
     });
+
+    if (response.status === 401) {
+      console.error("Unauthorized access - Logging out");
+      setIsAuthenticated(false);
+      return;
+    }
 
     if (response.ok) {
       alert("Note created!");
       setTitle("");
       setContent("");
+      fetchNotes(); // Refresh notes after creation
     } else {
       alert("Error creating note");
     }
@@ -46,8 +75,15 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     const response = await fetch("http://localhost:5000/api/notes/link", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 Ensure authentication cookies are sent
       body: JSON.stringify({ from_note_id: selectedNote1, to_note_id: selectedNote2 }),
     });
+
+    if (response.status === 401) {
+      console.error("Unauthorized access - Logging out");
+      setIsAuthenticated(false);
+      return;
+    }
 
     if (response.ok) {
       alert("Notes linked successfully!");
@@ -60,7 +96,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
     try {
       const response = await fetch("http://localhost:5000/api/auth/logout", {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // 🔥 Ensure authentication cookies are sent
       });
 
       if (!response.ok) throw new Error("Logout failed");
@@ -72,13 +108,7 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
 
   return (
     <div style={styles.menuContainer}>
-      <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          fetchNotes();
-        }}
-        style={styles.menuButton}
-      >
+      <button onClick={() => setIsOpen(!isOpen)} style={styles.menuButton}>
         <Menu size={32} color="white" />
       </button>
 
@@ -109,11 +139,12 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
             style={styles.select}
           >
             <option value="">Select Note 1</option>
-            {notes.map((note) => (
-              <option key={note.id} value={note.id}>
-                {note.title}
-              </option>
-            ))}
+            {notes.length > 0 &&
+              notes.map((note) => (
+                <option key={note.id} value={note.id}>
+                  {note.title}
+                </option>
+              ))}
           </select>
           <select
             value={selectedNote2}
@@ -121,11 +152,12 @@ const MenuButton: React.FC<{ setIsAuthenticated: (isAuth: boolean) => void }> = 
             style={styles.select}
           >
             <option value="">Select Note 2</option>
-            {notes.map((note) => (
-              <option key={note.id} value={note.id}>
-                {note.title}
-              </option>
-            ))}
+            {notes.length > 0 &&
+              notes.map((note) => (
+                <option key={note.id} value={note.id}>
+                  {note.title}
+                </option>
+              ))}
           </select>
           <button onClick={handleLinkNotes} style={styles.createButton}>
             Link
