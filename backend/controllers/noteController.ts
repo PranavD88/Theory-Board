@@ -1,19 +1,20 @@
 import { Request, Response } from "express";
 import pool from "../db";
 
-// Create a new note
+// Create a new note (linked to the logged-in user)
 export const createNote = async (req: Request, res: Response) => { 
     try {
         const { title, content } = req.body;
+        const userId = req.userId; // Ensure userId is available from authMiddleware
 
-        if (!title) {
+        if (!title.trim()) {
             res.status(400).json({ error: "Title is required" });
             return;
         }
 
         const result = await pool.query(
-            "INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *",
-            [title, content || null]
+            "INSERT INTO notes (title, content, user_id) VALUES ($1, $2, $3) RETURNING *",
+            [title, content || null, userId]
         );
 
         res.status(201).json(result.rows[0]);
@@ -23,19 +24,21 @@ export const createNote = async (req: Request, res: Response) => {
     }
 };
 
-// Get a single note by ID
+// Get a single note by ID (only if it belongs to the logged-in user)
 export const getNote = async (req: Request, res: Response) => {
     try {
         const noteId = parseInt(req.params.id, 10);
+        const userId = req.userId;
+
         if (isNaN(noteId)) {
             res.status(400).json({ error: "Invalid note ID" });
             return;
         }
 
-        const result = await pool.query("SELECT * FROM notes WHERE id = $1", [noteId]);
+        const result = await pool.query("SELECT * FROM notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
 
         if (result.rows.length === 0) {
-            res.status(404).json({ error: "Note not found" });
+            res.status(404).json({ error: "Note not found or unauthorized" });
             return;
         }
 
@@ -46,10 +49,14 @@ export const getNote = async (req: Request, res: Response) => {
     }
 };
 
-// Get all notes
-export const getAllNotes = async (_req: Request, res: Response) => {
+// Get all notes (only the logged-in user's notes)
+export const getAllNotes = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query("SELECT * FROM notes ORDER BY created_at DESC");
+        const userId = req.userId;
+        const result = await pool.query(
+            "SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC",
+            [userId]
+        );
         res.json(result.rows);
     } catch (error) {
         console.error("Error retrieving notes:", error);
@@ -57,22 +64,23 @@ export const getAllNotes = async (_req: Request, res: Response) => {
     }
 };
 
-// Link two notes together
+// Link two notes together (only if both belong to the logged-in user)
 export const linkNotes = async (req: Request, res: Response) => {
     try {
         const { from_note_id, to_note_id } = req.body;
+        const userId = req.userId;
 
         if (!from_note_id || !to_note_id || from_note_id === to_note_id) {
             res.status(400).json({ error: "Invalid note IDs" });
             return;
         }
 
-        // Ensure both notes exist
-        const fromNote = await pool.query("SELECT id FROM notes WHERE id = $1", [from_note_id]);
-        const toNote = await pool.query("SELECT id FROM notes WHERE id = $1", [to_note_id]);
+        // Ensure both notes belong to the logged-in user
+        const fromNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [from_note_id, userId]);
+        const toNote = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [to_note_id, userId]);
 
         if (fromNote.rows.length === 0 || toNote.rows.length === 0) {
-            res.status(400).json({ error: "One or both notes do not exist" });
+            res.status(400).json({ error: "One or both notes do not exist or unauthorized" });
             return;
         }
 
@@ -88,7 +96,10 @@ export const linkNotes = async (req: Request, res: Response) => {
         }
 
         // Insert into note_links table
-        await pool.query("INSERT INTO note_links (from_note_id, to_note_id) VALUES ($1, $2)", [from_note_id, to_note_id]);
+        await pool.query(
+            "INSERT INTO note_links (from_note_id, to_note_id) VALUES ($1, $2)",
+            [from_note_id, to_note_id]
+        );
 
         res.json({ message: "Notes linked successfully" });
     } catch (error) {
@@ -97,11 +108,18 @@ export const linkNotes = async (req: Request, res: Response) => {
     }
 };
 
-// Get all notes with their connections
-export const getGraphData = async (_req: Request, res: Response) => {
+// Get all notes with their connections (only for the logged-in user)
+export const getGraphData = async (req: Request, res: Response) => {
     try {
-        const notes = await pool.query("SELECT * FROM notes");
-        const links = await pool.query("SELECT * FROM note_links");
+        const userId = req.userId;
+
+        const notes = await pool.query("SELECT id, title FROM notes WHERE user_id = $1", [userId]);
+
+        const links = await pool.query(
+            "SELECT from_note_id, to_note_id FROM note_links WHERE from_note_id IN (SELECT id FROM notes WHERE user_id = $1) OR to_note_id IN (SELECT id FROM notes WHERE user_id = $1)",
+            [userId]
+        );
+
         res.json({ nodes: notes.rows, links: links.rows });
     } catch (error) {
         console.error("Error retrieving graph data:", error);
@@ -109,16 +127,26 @@ export const getGraphData = async (_req: Request, res: Response) => {
     }
 };
 
-// Delete a note and its connections
+// Delete a note and its connections (only if it belongs to the logged-in user)
 export const deleteNote = async (req: Request, res: Response) => {
     try {
         const noteId = parseInt(req.params.id, 10);
+        const userId = req.userId;
+
         if (isNaN(noteId)) {
             res.status(400).json({ error: "Invalid note ID" });
             return;
         }
 
-        // Delete note and any associated links
+        // Ensure note belongs to the logged-in user
+        const note = await pool.query("SELECT id FROM notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
+
+        if (note.rows.length === 0) {
+            res.status(403).json({ error: "Unauthorized or note does not exist" });
+            return;
+        }
+
+        // Delete note and its links
         await pool.query("DELETE FROM note_links WHERE from_note_id = $1 OR to_note_id = $1", [noteId]);
         await pool.query("DELETE FROM notes WHERE id = $1", [noteId]);
 
