@@ -4,7 +4,9 @@ import cytoscape from "cytoscape";
 const GraphView: React.FC = () => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-  const [selectedNote, setSelectedNote] = useState<{ title: string; content: string } | null>(null);
+  const [selectedNote, setSelectedNote] = useState<{ id: number; title: string; content: string } | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
 
   // Initialize Cytoscape
   const initializeCytoscape = () => {
@@ -108,6 +110,8 @@ const GraphView: React.FC = () => {
         .then((res) => res.json())
         .then((data) => {
           setSelectedNote(data);
+          setEditTitle(data.title);
+          setEditContent(data.content);
         })
         .catch((error) => console.error("Error fetching note:", error));
     };
@@ -118,29 +122,63 @@ const GraphView: React.FC = () => {
     };
   }, []);
 
-  // Handle graph resizing
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(() => {
-      if (cyRef.current) {
-        cyRef.current.fit();
-        cyRef.current.center();
-      }
+  // Handle note update
+  const handleUpdateNote = async () => {
+    if (!selectedNote) return;
+    const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ title: editTitle, content: editContent }),
     });
 
-    if (graphContainerRef.current) {
-      resizeObserver.observe(graphContainerRef.current);
+    if (response.ok) {
+      alert("Note updated successfully!");
+      setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
+    } else {
+      alert("Error updating note.");
     }
+  };
 
-    return () => resizeObserver.disconnect();
-  }, []);
+  // Handle note deletion
+  const handleDeleteNote = async () => {
+    if (!selectedNote) return;
+    const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      alert("Note deleted successfully!");
+      setSelectedNote(null);
+      fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
+        .then((res) => res.json())
+        .then(updateGraph)
+        .catch((error) => console.error("Error fetching graph:", error));
+    } else {
+      alert("Error deleting note.");
+    }
+  };
 
   return (
     <div style={styles.graphContainer}>
       <div ref={graphContainerRef} style={styles.cyContainer}></div>
       {selectedNote && (
         <div style={styles.notePreview}>
-          <h3>{selectedNote.title}</h3>
-          <p style={styles.noteContent}>{selectedNote.content}</p>
+          <h3>Edit Note</h3>
+          <input
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            style={styles.input}
+          />
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            style={styles.textarea}
+          />
+          <button onClick={handleUpdateNote} style={styles.saveButton}>Save</button>
+          <button onClick={handleDeleteNote} style={styles.deleteButton}>Delete</button>
         </div>
       )}
     </div>
@@ -184,10 +222,39 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
     zIndex: 10,
   },
-  noteContent: {
-    whiteSpace: "pre-wrap",
-    wordWrap: "break-word",
-    overflowWrap: "break-word",
+  input: {
+    width: "94%",
+    padding: "8px",
+    marginBottom: "10px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  textarea: {
+    width: "94%",
+    height: "100px",
+    padding: "8px",
+    marginBottom: "10px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  saveButton: {
+    width: "100%",
+    padding: "10px",
+    backgroundColor: "#29A19C",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    marginBottom: "10px",
+  },
+  deleteButton: {
+    width: "100%",
+    padding: "10px",
+    backgroundColor: "red",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
   },
 };
 

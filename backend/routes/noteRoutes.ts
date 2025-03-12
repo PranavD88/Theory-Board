@@ -1,11 +1,10 @@
 import express, { Request, Response } from "express";
 import pool from "../db";
 import authMiddleware from "../middleware/authMiddleware";
-import { createNote, getNote, getAllNotes, linkNotes, getGraphData, deleteNote } from "../controllers/noteController";
+import { createNote, getNote, getAllNotes, linkNotes, getGraphData, deleteNote, updateNote } from "../controllers/noteController";
 
 const router = express.Router();
 
-// Get user's saved notes
 router.get("/", authMiddleware, async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.userId;
@@ -18,7 +17,6 @@ router.get("/", authMiddleware, async (req: Request, res: Response): Promise<voi
     }
 });
 
-// Save or update a user's note
 router.post("/", authMiddleware, async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.userId;
@@ -44,7 +42,8 @@ router.post("/", authMiddleware, async (req: Request, res: Response): Promise<vo
     }
 });
 
-// Get the full graph of notes
+router.put("/:id", authMiddleware, updateNote);
+
 router.get("/graph", authMiddleware, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -69,7 +68,6 @@ router.get("/graph", authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// Graph-based note system
 router.post("/create", authMiddleware, createNote);
 router.get("/all", authMiddleware, getAllNotes);
 router.get("/graph", authMiddleware, getGraphData);
