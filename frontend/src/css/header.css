@@ -1,0 +1,16 @@
+@import url("Custom.css");
+
+.Page-header{
+    color: var(--punkpink);
+    background-color: var(--pencil);
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: flex;
+    justify-content: center;
+    min-height: 5vh;
+}
+p{
+    display: flex;
+    justify-content: center;
+
+}
