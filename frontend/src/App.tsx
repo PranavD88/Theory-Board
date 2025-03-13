@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import GraphView, { GraphViewHandles } from "./components/GraphView";
 import MenuButton from "./components/MenuButton";
+import Header from "./components/Header";
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
