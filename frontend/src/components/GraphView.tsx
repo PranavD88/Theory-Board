@@ -315,7 +315,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: "100vw",
     height: "100vh",
     backgroundColor: "#1B263B",
-    position: "absolute",
+    position: "inherit",
     top: 0,
     left: 0,
     display: "flex",
