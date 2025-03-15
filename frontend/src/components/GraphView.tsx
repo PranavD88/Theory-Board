@@ -312,6 +312,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
 // Styles
 const styles: Record<string, React.CSSProperties> = {
   graphContainer: {
+    // transforms for node graph interaction div
     width: "100vw",
     height: "75vh",
     backgroundColor: "#1B263B",
@@ -326,6 +327,7 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 1,
   },
   cyContainer: {
+    // transforms for node graph render div
     width: "100vw",
     height: "75vh",
     position: "absolute",
