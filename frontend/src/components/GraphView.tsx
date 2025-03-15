@@ -46,23 +46,25 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       container: graphContainerRef.current,
       layout: { name: "preset" },
       elements: [],
+      // Graph style
       style: [
         {
           selector: "node",
           style: {
             label: "data(label)",
-            "background-color": "#29A19C",
-            color: "white",
+            "background-color": "#131821",
+            color: "#ff005d",
             "text-valign": "center",
             "text-halign": "center",
-            "font-size": "12px",
+            "font-size": "6px",
+            "border-style": "solid", "border-width": "1px","border-color": "#ff005d"
           },
         },
         {
           selector: "edge",
           style: {
             width: 2,
-            "line-color": "#E0E1DD",
+            "line-color": "#ff005d",
             "curve-style": "bezier",
           },
         },
@@ -312,10 +314,10 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
 // Styles
 const styles: Record<string, React.CSSProperties> = {
   graphContainer: {
-    // transforms for node graph interaction div
-    width: "100vw",
+    // transforms for node graph interaction div / background
+    width: "92vw",
     height: "75vh",
-    backgroundColor: "#1B263B",
+    backgroundColor: "#131821",
     position: "inherit",
     top: "4vh",
     left: "0",
@@ -324,13 +326,16 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
+    borderStyle: "solid",borderColor: "#ff005d", borderWidth: "2px",
     zIndex: 1,
   },
   cyContainer: {
-    // transforms for node graph render div
-    width: "100vw",
+    // transforms for node graph render div /forground
+    width: "92vw",
     height: "75vh",
-    position: "absolute",
+    position: "initial",
+    display: "flex",
+    justifyContent: "center",
     left: "0",
     top: "4vh",
     bottom:"0",
@@ -344,7 +349,7 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: "70vh",
     overflowY: "auto",
     backgroundColor: "#0D1B2A",
-    color: "#E0E1DD",
+    color:"#ff005d",
     padding: "20px",
     borderRadius: "10px",
     boxShadow: "0px 6px 10px rgba(0, 0, 0, 0.3)",
@@ -353,6 +358,7 @@ const styles: Record<string, React.CSSProperties> = {
   noteTitle: {
     textAlign: "center",
     fontSize: "18px",
+    color:"#ff005d",
     fontWeight: "bold",
     marginBottom: "10px",
   },

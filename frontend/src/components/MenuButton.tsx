@@ -195,9 +195,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   menuContainer: {
-    // todo -- change container to have dynamic position
+    // note menu button transforms
     position: "absolute", 
-    top: "20px",
+    top: "5vh",
     left: "10px",
     zIndex: 10,
   },

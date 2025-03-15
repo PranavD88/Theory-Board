@@ -1,27 +1,21 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import Header from "../components/Header";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import NavButton from "./navigation";
-
-function BackBttn(){
-  return (<NavButton Path="../index.tsx" Text="Back" /> )
-}
+import "../App.css";
 
 
-function ProjectList() {
-  const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const ProjectsList: React.FC = () => {
   return (
-    root.render(
-      <Router>
-        <Routes>
-          <Route>
+    <div>
+      <div  className="Menu-button-list">
+      <NavButton Path="/" Text="Go Back to Home" />
+      </div>
 
-          </Route>
-        </Routes>
-      </Router>
-    ));
-}
+      <div>
+        <h1>Projects Page</h1>
+        <p>This is the projects page.</p>
+      </div>
+    </div>
+  );
+};
 
-export default ProjectList;
+export default ProjectsList;
