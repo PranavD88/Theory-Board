@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import "./App.css";
 import GraphView, { GraphViewHandles } from "./components/GraphView";
 import MenuButton from "./components/MenuButton";
+import NavButton from "./pages/navigation";
 
 
 const App: React.FC = () => {
@@ -56,13 +57,16 @@ const App: React.FC = () => {
                 <div className="Menu-button-list">
                   <button>New Project</button>
                   <button>Open Project</button>
+                  <NavButton Path="./projects.tsx" Text="Open Projects" /> 
+                  {/* to do -- make projects be instances of app */}
                   <button>Delete Project</button>                  
                 </div>
-                  {/* Note Menu area */}
+
+                  
                 <div className="Graph-area">
                   {/* creates graph view in app */}
                   <GraphView ref={graphRef} />
-
+                
                   {/* Handles node instance in graph view */}
                  <MenuButton
                     setIsAuthenticated={setIsAuthenticated}
