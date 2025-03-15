@@ -313,11 +313,12 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
 const styles: Record<string, React.CSSProperties> = {
   graphContainer: {
     width: "100vw",
-    height: "100vh",
+    height: "75vh",
     backgroundColor: "#1B263B",
     position: "inherit",
-    top: 0,
-    left: 0,
+    top: "4vh",
+    left: "0",
+    bottom: "30vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -326,10 +327,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cyContainer: {
     width: "100vw",
-    height: "100vh",
+    height: "75vh",
     position: "absolute",
     left: "0",
-    top: "0",
+    top: "4vh",
+    bottom:"0",
     zIndex: 2,
   },
   notePreview: {

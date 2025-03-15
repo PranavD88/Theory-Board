@@ -44,6 +44,7 @@
   flex-direction: row;
   justify-content: center;
   gap: 10px;
+  z-index: 11;
 }
 .Menu-button-list button {
   padding: 5px 10px;
