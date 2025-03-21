@@ -1,13 +1,36 @@
-import React from "react";
+import React, { useState } from 'react';
 import NavButton from "./navigation";
 import "../App.css";
 
 
 const ProjectsList: React.FC = () => {
+  const [projName, setProjName] = useState<string>('');// variable and function to record project Name
+  const [showInput, setShowInput] = useState<boolean>(false);  // variable and function to toggle input visibility
+
+  const handleInputChange = 
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+          setProjName(e.target.value);
+        };
+
+  const toggleInput = () => {
+          setShowInput(!showInput);  // Toggles input visibility
+        };
   return (
     <div>
       <div  className="Menu-button-list">
       <NavButton Path="/" Text="Go Back to Home" />
+      <button onClick={toggleInput}>New Project
+        {showInput && (': ')}
+        {showInput && (
+            <input
+              type="text"
+              id="projName"
+              onChange={handleInputChange}
+              placeholder="Enter Project Name"
+            />
+          )}
+      </button>
+      <button>Delete Project</button>
       </div>
 
       <div>
