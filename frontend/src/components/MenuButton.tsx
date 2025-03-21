@@ -195,8 +195,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   menuContainer: {
-    position: "absolute",
-    top: "10px",
+    // note menu button transforms
+    position: "absolute", 
+    top: "5vh",
     left: "10px",
     zIndex: 10,
   },

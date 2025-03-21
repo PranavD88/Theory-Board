@@ -1,5 +1,5 @@
 
-@import "./components/Custom.css";
+@import "./css/Custom.css";
 .App {
   text-align: center;
 }
@@ -38,7 +38,32 @@
     transform: rotate(360deg);
   }
 }
-
+/* Project Management menu */
+.Menu-button-list{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  z-index: 11;
+  background-color: var(--graphite);
+  padding: 4px;
+}
+.Menu-button-list button {
+  padding: 5px 10px;
+  border: 2px solid var(--punkpink);
+  border-radius: 1vh;
+  background-color: var(--pencil);
+  color: var(--punkpink);
+  cursor: pointer;
+  justify-content: center;
+}
 html{
   background-color: var(--pencil);
+}
+#cy{
+  color: var(--punkpink);
+}
+.Graph-area{
+  display: flex;
+  justify-content: center;
 }
