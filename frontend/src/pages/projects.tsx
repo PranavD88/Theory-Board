@@ -20,7 +20,12 @@ const ProjectsList: React.FC = () => {
       <div  className="Menu-button-list">
       <NavButton Path="/" Text="Go Back to Home" />
       <button onClick={toggleInput}>New Project
-        {showInput && (': ')}
+      </button>
+      
+      <button>Delete Project</button>
+      </div>
+
+      <div>
         {showInput && (
             <input
               type="text"
@@ -28,12 +33,9 @@ const ProjectsList: React.FC = () => {
               onChange={handleInputChange}
               placeholder="Enter Project Name"
             />
+            
           )}
-      </button>
-      <button>Delete Project</button>
-      </div>
-
-      <div>
+          {showInput && (<button className='InputAccept'>Create Poject</button>)}
         <h1>Projects Page</h1>
         <p>This is the projects page.</p>
       </div>
