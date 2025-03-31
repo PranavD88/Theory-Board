@@ -1,5 +1,5 @@
-
 @import "./css/Custom.css";
+
 .App {
   text-align: center;
 }
@@ -38,8 +38,9 @@
     transform: rotate(360deg);
   }
 }
+
 /* Project Management menu */
-.Menu-button-list{
+.Menu-button-list {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -48,6 +49,7 @@
   background-color: var(--graphite);
   padding: 4px;
 }
+
 .Menu-button-list button {
   padding: 5px 10px;
   border: 2px solid var(--punkpink);
@@ -57,13 +59,24 @@
   cursor: pointer;
   justify-content: center;
 }
-html{
+
+html {
   background-color: var(--pencil);
 }
-#cy{
+
+#cy {
   color: var(--punkpink);
 }
-.Graph-area{
+
+.Graph-area {
   display: flex;
   justify-content: center;
+}
+
+.ProseMirror,
+.ProseMirror * {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  box-sizing: border-box !important;
 }

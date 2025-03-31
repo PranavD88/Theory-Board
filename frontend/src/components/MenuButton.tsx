@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Menu } from "lucide-react";
 import TagInput from "./TagInput";
+import RichTextEditor from "./RichTextEditor";
 
 interface MenuButtonProps {
   setIsAuthenticated: (isAuth: boolean) => void;
@@ -65,7 +66,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       body: JSON.stringify({
         title,
         content,
-        tags: tags.map(tag => tag.text)
+        tags: tags.map(tag => tag.text),
       }),
     });
 
@@ -152,12 +153,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
             onChange={(e) => setTitle(e.target.value)}
             style={styles.input}
           />
-          <textarea
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            style={styles.textarea}
-          />
+          <div style={{ width: "100%", textAlign: "left", display: "block" }}>
+            <RichTextEditor content={content} onChange={setContent} />
+          </div>
           <TagInput tags={tags} setTags={setTags} />
           <button onClick={handleCreateNote} style={styles.createButton}>
             Create
@@ -203,8 +201,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   menuContainer: {
-    // note menu button transforms
-    position: "absolute", 
+    position: "absolute",
     top: "5vh",
     left: "10px",
     zIndex: 10,
@@ -226,9 +223,12 @@ const styles: Record<string, React.CSSProperties> = {
     color: "white",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    textAlign: "left",
     overflowY: "auto",
     overflowX: "hidden",
+    zIndex: 1000,
   },
   heading: {
     marginBottom: "10px",

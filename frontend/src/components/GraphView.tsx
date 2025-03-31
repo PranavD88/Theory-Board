@@ -6,6 +6,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import cytoscape from "cytoscape";
+import RichTextEditor from "./RichTextEditor";
 
 export interface GraphViewHandles {
   addNode: (newNote: any) => void;
@@ -286,11 +287,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             onChange={(e) => setEditTitle(e.target.value)}
             style={styles.input}
           />
-          <textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            style={styles.textarea}
-          />
+          <RichTextEditor content={editContent} onChange={setEditContent} />
 
           {(selectedNote?.tags?.length ?? 0) > 0 && (
             <div style={{ marginBottom: "10px", width: "100%" }}>
