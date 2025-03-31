@@ -4,7 +4,8 @@ import pool from "../db";
 // Create a new note
 export const createNote = async (req: Request, res: Response) => { 
     try {
-        const { title, content } = req.body;
+        const { title, content, tags } = req.body;
+        console.log("CREATING NOTE WITH TAGS:", tags);
         const userId = req.userId;
 
         if (!title.trim()) {
@@ -13,8 +14,8 @@ export const createNote = async (req: Request, res: Response) => {
         }
 
         const result = await pool.query(
-            "INSERT INTO notes (title, content, user_id) VALUES ($1, $2, $3) RETURNING *",
-            [title, content || null, userId]
+            "INSERT INTO notes (title, content, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING *",
+            [title, content || null, userId, Array.isArray(tags) ? tags : []]
         );
 
         res.status(201).json(result.rows[0]);
@@ -35,7 +36,10 @@ export const getNote = async (req: Request, res: Response) => {
             return;
         }
 
-        const result = await pool.query("SELECT * FROM notes WHERE id = $1 AND user_id = $2", [noteId, userId]);
+        const result = await pool.query(
+            "SELECT id, title, content, tags FROM notes WHERE id = $1 AND user_id = $2",
+            [noteId, userId]
+          );
 
         if (result.rows.length === 0) {
             res.status(404).json({ error: "Note not found or unauthorized" });
@@ -69,7 +73,7 @@ export const updateNote = async (req: Request, res: Response) => {
     try {
         const noteId = parseInt(req.params.id, 10);
         const userId = req.userId;
-        const { title, content } = req.body;
+        const { title, content, tags } = req.body;
 
         if (isNaN(noteId)) {
             res.status(400).json({ error: "Invalid note ID" });
@@ -83,8 +87,11 @@ export const updateNote = async (req: Request, res: Response) => {
             return;
         }
 
-        // Update the note
-        await pool.query("UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4", [title, content, noteId, userId]);
+        // Update the note including the tags column
+        await pool.query(
+            "UPDATE notes SET title = $1, content = $2, tags = $3 WHERE id = $4 AND user_id = $5",
+            [title, content, tags || [], noteId, userId]
+        );
 
         res.json({ message: "Note updated successfully" });
     } catch (error) {

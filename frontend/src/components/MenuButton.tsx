@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Menu } from "lucide-react";
+import TagInput from "./TagInput";
 
 interface MenuButtonProps {
   setIsAuthenticated: (isAuth: boolean) => void;
@@ -20,6 +21,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   const [selectedNote1, setSelectedNote1] = useState("");
   const [selectedNote2, setSelectedNote2] = useState("");
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
+  const [tags, setTags] = useState<{ id: string; text: string }[]>([]);
 
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
@@ -60,7 +62,11 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({
+        title,
+        content,
+        tags: tags.map(tag => tag.text)
+      }),
     });
 
     if (response.status === 401) {
@@ -74,6 +80,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       alert("Note created!");
       setTitle("");
       setContent("");
+      setTags([]);
       addNode(newNote);
       fetchNotes();
     } else {
@@ -151,6 +158,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
             onChange={(e) => setContent(e.target.value)}
             style={styles.textarea}
           />
+          <TagInput tags={tags} setTags={setTags} />
           <button onClick={handleCreateNote} style={styles.createButton}>
             Create
           </button>
