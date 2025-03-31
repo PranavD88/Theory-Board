@@ -26,9 +26,10 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const [selectedNote, setSelectedNote] = useState<{
-    id: number;
-    title: string;
-    content: string;
+    id: number
+    title: string
+    content: string
+    tags?: string[]
   } | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -270,9 +271,12 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     },
   }));
 
+  console.log("Selected Note Tags:", selectedNote?.tags);
+
   return (
     <div style={styles.graphContainer}>
       <div ref={graphContainerRef} style={styles.cyContainer}></div>
+
       {selectedNote && (
         <div style={styles.notePreview}>
           <h3 style={styles.noteTitle}>Edit Note</h3>
@@ -287,6 +291,29 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             onChange={(e) => setEditContent(e.target.value)}
             style={styles.textarea}
           />
+
+          {(selectedNote?.tags?.length ?? 0) > 0 && (
+            <div style={{ marginBottom: "10px", width: "100%" }}>
+              <label style={{ fontWeight: "bold", fontSize: "14px" }}>Tags</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "5px" }}>
+                {selectedNote?.tags?.map((tag: string) => (
+                  <span
+                    key={tag}
+                    style={{
+                      backgroundColor: "#444",
+                      color: "white",
+                      padding: "4px 8px",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button onClick={handleUpdateNote} style={styles.saveButton}>
             Save
           </button>
@@ -295,6 +322,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           </button>
         </div>
       )}
+
       {selectedEdge && (
         <div style={styles.notePreview}>
           <h3 style={styles.noteTitle}>Unlink Connection</h3>
@@ -310,6 +338,8 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     </div>
   );
 });
+
+
 
 // Styles
 const styles: Record<string, React.CSSProperties> = {
