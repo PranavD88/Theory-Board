@@ -36,6 +36,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [newTag, setNewTag] = useState("");
 
   const initializeCytoscape = () => {
     if (!graphContainerRef.current) return;
@@ -170,7 +171,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title: editTitle, content: editContent }),
+        body: JSON.stringify({ title: editTitle, content: editContent, tags: selectedNote?.tags ?? [] }),
       }
     );
 
@@ -339,18 +340,47 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           />
           <RichTextEditor content={editContent} onChange={setEditContent} />
   
-          {(selectedNote?.tags?.length ?? 0) > 0 && (
-            <div className="tags-container">
-              <label className="tags-label">Tags</label>
-              <div className="tags-list">
-                {selectedNote?.tags?.map((tag: string) => (
-                  <span key={tag} className="tag">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
+          <div className="tags-container">
+            <label className="tags-label">Tags</label>
+            <div className="tags-list">
+              {(selectedNote?.tags ?? []).map((tag: string, idx: number) => (
+                <span key={`${tag}-${idx}`} className="tag">
+                  #{tag}
+                  <button
+                    className="delete-tag-btn"
+                    onClick={() => {
+                      const updatedTags = selectedNote.tags!.filter((t) => t !== tag);
+                      setSelectedNote({ ...selectedNote, tags: updatedTags });
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
             </div>
-          )}
+  
+            <div className="tag-input-wrapper">
+              <input
+                type="text"
+                placeholder="Add new tag"
+                className="input"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+              />
+              <button
+                className="create-button"
+                onClick={() => {
+                  const trimmed = newTag.trim();
+                  if (!trimmed || selectedNote.tags?.includes(trimmed)) return;
+                  const updatedTags = [...(selectedNote.tags ?? []), trimmed];
+                  setSelectedNote({ ...selectedNote, tags: updatedTags });
+                  setNewTag("");
+                }}
+              >
+                Add Tag
+              </button>
+            </div>
+          </div>
   
           <button onClick={handleUpdateNote} className="save-button">
             Save
@@ -359,10 +389,16 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             Delete
           </button>
   
-          <button onClick={() => handleExportPDF(selectedNote.id)} className="export-button pdf-export">
+          <button
+            onClick={() => handleExportPDF(selectedNote.id)}
+            className="export-button pdf-export"
+          >
             Export as PDF
           </button>
-          <button onClick={() => handleExportDOCX(selectedNote.id)} className="export-button docx-export">
+          <button
+            onClick={() => handleExportDOCX(selectedNote.id)}
+            className="export-button docx-export"
+          >
             Export as DOCX
           </button>
         </div>
