@@ -1,87 +1,137 @@
 .graph-container {
-    width: 92vw;
-    height: 75vh;
-    background-color: #131821;
-    position: inherit;
-    top: 4vh;
-    left: 0;
-    bottom: 30vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    border: 2px solid #ff005d;
-    z-index: 1;
-  }
-  
-  .cy-container {
-    width: 92vw;
-    height: 75vh;
-    position: initial;
-    display: flex;
-    justify-content: center;
-    left: 0;
-    top: 4vh;
-    bottom: 0;
-    z-index: 2;
-  }
-  
-  .note-preview {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 350px;
-    max-height: 70vh;
-    overflow-y: auto;
-    background-color: #0D1B2A;
-    color: #ff005d;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
-    z-index: 10;
-  }
-  
-  .note-title {
-    text-align: center;
-    font-size: 18px;
-    color: #ff005d;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .input, .textarea {
-    width: 94%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-  }
-  
-  .textarea {
-    height: 150px;
-  }
-  
-  .save-button,
-  .delete-button,
-  .unlink-button {
-    width: 100%;
-    padding: 12px;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
-  
-  .save-button {
-    background-color: #29A19C;
-  }
-  
-  .delete-button {
-    background-color: red;
-  }
-  
-  .unlink-button {
-    background-color: #FF9900;
-  }
-  
+  width: 92vw;
+  height: 75vh;
+  background-color: #131821;
+  position: inherit;
+  top: 4vh;
+  left: 0;
+  bottom: 30vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border: 2px solid #ff005d;
+  z-index: 1;
+}
+
+.cy-container {
+  width: 92vw;
+  height: 75vh;
+  position: initial;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  top: 4vh;
+  bottom: 0;
+  z-index: 2;
+}
+
+.note-preview {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 350px;
+  max-height: 70vh;
+  overflow-y: auto;
+  background-color: #0D1B2A;
+  color: #ff005d;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.note-title {
+  text-align: center;
+  font-size: 18px;
+  color: #ff005d;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.input,
+.textarea {
+  width: 94%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.textarea {
+  height: 150px;
+}
+
+.save-button,
+.delete-button,
+.unlink-button {
+  width: 100%;
+  padding: 12px;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.save-button {
+  background-color: #29A19C;
+}
+
+.delete-button {
+  background-color: red;
+}
+
+.unlink-button {
+  background-color: #FF9900;
+}
+
+.tags-container {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.tags-label {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 4px;
+  display: block;
+  color: #bc78be;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.tag {
+  background-color: #8b34db;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.export-button {
+  width: 50%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.pdf-export {
+  background-color: #e74c3c;
+}
+
+.docx-export {
+  background-color: #5bc0de;
+}

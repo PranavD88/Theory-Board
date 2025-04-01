@@ -9,9 +9,15 @@ import {
   getGraphData, 
   deleteNote, 
   updateNote, 
-  unlinkNotes 
+  unlinkNotes, 
+  importPdf,
+  importDocx,
+  exportNoteAsPDF,
+  exportNoteAsDOCX
 } from "../controllers/noteController";
+import multer from "multer";
 
+const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 router.get("/", authMiddleware, async (req: Request, res: Response): Promise<void> => {
@@ -50,6 +56,10 @@ router.post("/", authMiddleware, async (req: Request, res: Response): Promise<vo
     }
 });
 
+router.post("/import/pdf", authMiddleware, upload.single("file"), importPdf);
+router.post("/import/docx", authMiddleware, upload.single("file"), importDocx);
+router.get("/export/pdf/:id", authMiddleware, exportNoteAsPDF);
+router.get("/export/docx/:id", authMiddleware, exportNoteAsDOCX);
 router.put("/:id", authMiddleware, updateNote);
 router.get("/graph", authMiddleware, getGraphData);
 router.post("/create", authMiddleware, createNote);

@@ -126,14 +126,16 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     const handleNodeClick = (event: any) => {
       setSelectedEdge(null);
       const nodeId = event.target.id().substring(1);
+    
       fetch(`http://localhost:5000/api/notes/${nodeId}`, {
         credentials: "include",
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log("Loaded note data:", data);
           setSelectedNote(data);
-          setEditTitle(data.title);
-          setEditContent(data.content);
+          setEditTitle(data.title || "");
+          setEditContent(data.content || "");
         })
         .catch((error) => console.error("Error fetching note:", error));
     };
@@ -233,6 +235,50 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }
   };
 
+  const handleExportPDF = async (noteId: number) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/notes/export/pdf/${noteId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+  
+      if (!response.ok) throw new Error("Failed to export PDF");
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${editTitle || "note"}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error exporting PDF:", err);
+      alert("Error exporting PDF");
+    }
+  };
+
+  const handleExportDOCX = async (noteId: number) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/notes/export/docx/${noteId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+  
+      if (!response.ok) throw new Error("Failed to export DOCX");
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${editTitle || "note"}.docx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error exporting DOCX:", err);
+      alert("Error exporting DOCX");
+    }
+  };  
+
   useImperativeHandle(ref, () => ({
     addNode(newNote: any) {
       if (cyRef.current) {
@@ -281,7 +327,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   return (
     <div className="graph-container">
       <div ref={graphContainerRef} className="cy-container"></div>
-
+  
       {selectedNote && (
         <div className="note-preview">
           <h3 className="note-title">Edit Note</h3>
@@ -292,7 +338,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             className="input"
           />
           <RichTextEditor content={editContent} onChange={setEditContent} />
-
+  
           {(selectedNote?.tags?.length ?? 0) > 0 && (
             <div className="tags-container">
               <label className="tags-label">Tags</label>
@@ -305,16 +351,23 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
               </div>
             </div>
           )}
-
+  
           <button onClick={handleUpdateNote} className="save-button">
             Save
           </button>
           <button onClick={handleDeleteNote} className="delete-button">
             Delete
           </button>
+  
+          <button onClick={() => handleExportPDF(selectedNote.id)} className="export-button pdf-export">
+            Export as PDF
+          </button>
+          <button onClick={() => handleExportDOCX(selectedNote.id)} className="export-button docx-export">
+            Export as DOCX
+          </button>
         </div>
       )}
-
+  
       {selectedEdge && (
         <div className="note-preview">
           <h3 className="note-title">Unlink Connection</h3>

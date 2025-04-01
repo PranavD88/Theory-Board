@@ -138,12 +138,73 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     }
   };
 
+
+  const handleImportPDF = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/notes/import/pdf", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to import PDF");
+      }
+  
+      const newNote = await response.json();
+      alert("PDF imported as note!");
+      addNode(newNote);
+      fetchNotes();
+  
+      e.target.value = "";
+    } catch (err) {
+      console.error("Error importing PDF:", err);
+      alert("Error importing PDF");
+    }
+  };
+
+  const handleImportDOCX = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+  
+    try {
+      const response = await fetch("http://localhost:5000/api/notes/import/docx", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to import DOCX");
+      }
+  
+      const newNote = await response.json();
+      alert("DOCX imported as note!");
+      addNode(newNote);
+      fetchNotes();
+  
+      e.target.value = "";
+    } catch (err) {
+      console.error("Error importing DOCX:", err);
+      alert("Error importing DOCX");
+    }
+  };
+  
   return (
     <div className="menu-container">
       <button onClick={() => setIsOpen(!isOpen)} className="menu-button">
         <Menu size={32} color="white" />
       </button>
-
+  
       {isOpen && (
         <div className="dropdown">
           <h3 className="heading">Create a Note</h3>
@@ -158,10 +219,21 @@ const MenuButton: React.FC<MenuButtonProps> = ({
             <RichTextEditor content={content} onChange={setContent} />
           </div>
           <TagInput tags={tags} setTags={setTags} />
+  
+          <label className="import-label pdf">
+            Import PDF
+            <input type="file" accept=".pdf" onChange={handleImportPDF} className="import-input" />
+          </label>
+  
+          <label className="import-label docx">
+            Import DOCX
+            <input type="file" accept=".docx" onChange={handleImportDOCX} className="import-input" />
+          </label>
+  
           <button onClick={handleCreateNote} className="create-button">
             Create
           </button>
-
+  
           <h3 className="heading">Link Notes</h3>
           <select
             value={selectedNote1}
@@ -190,7 +262,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
           <button onClick={handleLinkNotes} className="create-button">
             Link
           </button>
-
+  
           <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
@@ -198,6 +270,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       )}
     </div>
   );
-};
+};  
 
 export default MenuButton;

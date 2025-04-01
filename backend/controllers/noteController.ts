@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import pool from "../db";
+import fs from "fs";
+import pdfParse from "pdf-parse";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import * as mammoth from "mammoth";
+import PDFDocument from "pdfkit";
+
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => { 
@@ -227,4 +233,149 @@ export const deleteNote = async (req: Request, res: Response) => {
         console.error("Error deleting note:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
+};
+
+// Import Pdf
+export const importPdf = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+  
+      const userId = req.userId;
+      console.log("Importing PDF for user ID:", userId);
+  
+      const dataBuffer = fs.readFileSync(req.file.path);
+      const pdfData = await pdfParse(dataBuffer);
+      const text = pdfData.text.trim();
+  
+      if (!text) {
+        res.status(400).json({ error: "PDF contains no readable text" });
+        return;
+      }
+  
+      const title = req.file.originalname.replace(/\.pdf$/, "") || "Untitled Note";
+  
+      const result = await pool.query(
+        "INSERT INTO notes (title, content, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING *",
+        [title, text, userId, []]
+      );
+  
+      fs.unlinkSync(req.file.path);
+  
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error("Error importing PDF:", error);
+      res.status(500).json({ error: "Failed to import PDF" });
+    }
+};
+
+// Import DOCX file
+export const importDocx = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+  
+      const userId = req.userId;
+      const buffer = fs.readFileSync(req.file.path);
+  
+      const resultText = await mammoth.extractRawText({ buffer });
+      const text = resultText.value.trim();
+  
+      if (!text) {
+        res.status(400).json({ error: "DOCX contains no readable text" });
+        return;
+      }
+  
+      const title = req.file.originalname.replace(/\.docx$/, "") || "Untitled Note";
+  
+      const result = await pool.query(
+        "INSERT INTO notes (title, content, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING *",
+        [title, text, userId, []]
+      );
+  
+      fs.unlinkSync(req.file.path);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error("Error importing DOCX:", error);
+      res.status(500).json({ error: "Failed to import DOCX" });
+    }
+};
+  
+// Export PDF File
+export const exportNoteAsPDF = async (req: Request, res: Response) => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const userId = req.userId;
+
+    const result = await pool.query(
+      "SELECT title, content FROM notes WHERE id = $1 AND user_id = $2",
+      [noteId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "Note not found" });
+    }
+
+    const { title, content } = result.rows[0];
+
+    const doc = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${title}.pdf"`);
+
+    doc.pipe(res);
+    doc.fontSize(18).text(title, { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(content);
+    doc.end();
+  } catch (error) {
+    console.error("PDF export error:", error);
+    res.status(500).json({ error: "Failed to export PDF" });
+  }
+};
+
+// Export DOCX File
+export const exportNoteAsDOCX = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const userId = req.userId;
+
+    const result = await pool.query(
+      "SELECT title, content, tags FROM notes WHERE id = $1 AND user_id = $2",
+      [noteId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "Note not found or unauthorized" });
+      return;
+    }
+
+    const { title, content, tags } = result.rows[0];
+
+    const paragraphs = [];
+
+    paragraphs.push(new Paragraph({ text: title || "Untitled", heading: HeadingLevel.HEADING_1 }));
+
+    paragraphs.push(new Paragraph(content || ""));
+
+    if (Array.isArray(tags) && tags.length > 0) {
+      paragraphs.push(new Paragraph({ text: "Tags:", heading: HeadingLevel.HEADING_2 }));
+      for (const tag of tags) {
+        paragraphs.push(new Paragraph(`#${tag}`));
+      }
+    }
+
+    const doc = new Document({ sections: [{ children: paragraphs }] });
+    const buffer = await Packer.toBuffer(doc);
+
+    res.setHeader("Content-Disposition", `attachment; filename="${title}.docx"`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.send(buffer);
+  } catch (error) {
+    console.error("DOCX export error:", error);
+    res.status(500).json({ error: "Failed to export DOCX" });
+  }
 };
