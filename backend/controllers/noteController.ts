@@ -2,6 +2,13 @@ import { Request, Response } from "express";
 import pool from "../db";
 import fs from "fs";
 import pdfParse from "pdf-parse";
+import { Document } from "docx";
+import { Document as DocxDoc } from "docx";
+import * as docx from "docx";
+import { readFileSync } from "fs";
+import { parse } from "path";
+import { promisify } from "util";
+import * as mammoth from "mammoth";
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => { 
@@ -264,6 +271,40 @@ export const importPdf = async (req: Request, res: Response): Promise<void> => {
     } catch (error) {
       console.error("Error importing PDF:", error);
       res.status(500).json({ error: "Failed to import PDF" });
+    }
+  };
+
+// Import DOCX file
+export const importDocx = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+  
+      const userId = req.userId;
+      const buffer = fs.readFileSync(req.file.path);
+  
+      const resultText = await mammoth.extractRawText({ buffer });
+      const text = resultText.value.trim();
+  
+      if (!text) {
+        res.status(400).json({ error: "DOCX contains no readable text" });
+        return;
+      }
+  
+      const title = req.file.originalname.replace(/\.docx$/, "") || "Untitled Note";
+  
+      const result = await pool.query(
+        "INSERT INTO notes (title, content, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING *",
+        [title, text, userId, []]
+      );
+  
+      fs.unlinkSync(req.file.path);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error("Error importing DOCX:", error);
+      res.status(500).json({ error: "Failed to import DOCX" });
     }
   };
   

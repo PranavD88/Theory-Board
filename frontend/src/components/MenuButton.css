@@ -77,18 +77,25 @@
   }
 
   .import-label {
-    width: 100%;
+    display: inline-block;
+    padding: 6px 10px;
     margin-bottom: 10px;
-    padding: 12px;
-    background-color: #444;
-    color: white;
-    border-radius: 4px;
-    text-align: center;
+    border-radius: 6px;
+    font-size: 14px;
     cursor: pointer;
+    color: white;
   }
   
   .import-input {
     display: none;
   }
   
-  
+  .import-label.pdf {
+    background-color: #e74c3c;
+    border: 1px solid #c0392b;
+  }
+
+  .import-label.docx {
+    background-color: #3498db;
+    border: 1px solid #2980b9;
+  }
