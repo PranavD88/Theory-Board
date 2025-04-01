@@ -1,0 +1,78 @@
+.menu-container {
+    position: absolute;
+    top: 5vh;
+    left: 10px;
+    z-index: 10;
+  }
+  
+  .menu-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .dropdown {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    width: 300px;
+    height: 85vh;
+    background: #333;
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+  }
+  
+  .heading {
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .input,
+  .textarea,
+  .select {
+    width: 93%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: none;
+  }
+  
+  .textarea {
+    height: 30vh;
+  }
+  
+  .select {
+    width: 100%;
+  }
+  
+  .create-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #29a19c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  
+  .logout-button {
+    width: 100%;
+    padding: 12px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Menu } from "lucide-react";
 import TagInput from "./TagInput";
 import RichTextEditor from "./RichTextEditor";
+import "./MenuButton.css";
 
 interface MenuButtonProps {
   setIsAuthenticated: (isAuth: boolean) => void;
@@ -138,34 +139,34 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   };
 
   return (
-    <div style={styles.menuContainer}>
-      <button onClick={() => setIsOpen(!isOpen)} style={styles.menuButton}>
+    <div className="menu-container">
+      <button onClick={() => setIsOpen(!isOpen)} className="menu-button">
         <Menu size={32} color="white" />
       </button>
 
       {isOpen && (
-        <div style={styles.dropdown}>
-          <h3 style={styles.heading}>Create a Note</h3>
+        <div className="dropdown">
+          <h3 className="heading">Create a Note</h3>
           <input
             type="text"
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={styles.input}
+            className="input"
           />
           <div style={{ width: "100%", textAlign: "left", display: "block" }}>
             <RichTextEditor content={content} onChange={setContent} />
           </div>
           <TagInput tags={tags} setTags={setTags} />
-          <button onClick={handleCreateNote} style={styles.createButton}>
+          <button onClick={handleCreateNote} className="create-button">
             Create
           </button>
 
-          <h3 style={styles.heading}>Link Notes</h3>
+          <h3 className="heading">Link Notes</h3>
           <select
             value={selectedNote1}
             onChange={(e) => setSelectedNote1(e.target.value)}
-            style={styles.select}
+            className="select"
           >
             <option value="">Select Note 1</option>
             {notes.map((note) => (
@@ -177,7 +178,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
           <select
             value={selectedNote2}
             onChange={(e) => setSelectedNote2(e.target.value)}
-            style={styles.select}
+            className="select"
           >
             <option value="">Select Note 2</option>
             {notes.map((note) => (
@@ -186,96 +187,17 @@ const MenuButton: React.FC<MenuButtonProps> = ({
               </option>
             ))}
           </select>
-          <button onClick={handleLinkNotes} style={styles.createButton}>
+          <button onClick={handleLinkNotes} className="create-button">
             Link
           </button>
 
-          <button onClick={handleLogout} style={styles.logoutButton}>
+          <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
         </div>
       )}
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  menuContainer: {
-    position: "absolute",
-    top: "5vh",
-    left: "10px",
-    zIndex: 10,
-  },
-  menuButton: {
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-  },
-  dropdown: {
-    position: "absolute",
-    top: "40px",
-    left: 0,
-    width: "300px",
-    height: "85vh",
-    background: "#333",
-    padding: "15px",
-    borderRadius: "5px",
-    color: "white",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    textAlign: "left",
-    overflowY: "auto",
-    overflowX: "hidden",
-    zIndex: 1000,
-  },
-  heading: {
-    marginBottom: "10px",
-    textAlign: "center",
-  },
-  input: {
-    width: "93%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "4px",
-    border: "none",
-  },
-  textarea: {
-    width: "93%",
-    height: "30vh",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "4px",
-    border: "none",
-  },
-  select: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "4px",
-    border: "none",
-  },
-  createButton: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "#29A19C",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    marginBottom: "10px",
-  },
-  logoutButton: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "red",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    marginBottom: "10px",
-  },
 };
 
 export default MenuButton;

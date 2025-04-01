@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import cytoscape from "cytoscape";
 import RichTextEditor from "./RichTextEditor";
+import "./GraphView.css";
 
 export interface GraphViewHandles {
   addNode: (newNote: any) => void;
@@ -27,16 +28,15 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const [selectedNote, setSelectedNote] = useState<{
-    id: number
-    title: string
-    content: string
-    tags?: string[]
+    id: number;
+    title: string;
+    content: string;
+    tags?: string[];
   } | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
-  // Initialize Cytoscape
   const initializeCytoscape = () => {
     if (!graphContainerRef.current) return;
     if (cyRef.current) {
@@ -48,7 +48,6 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       container: graphContainerRef.current,
       layout: { name: "preset" },
       elements: [],
-      // Graph style
       style: [
         {
           selector: "node",
@@ -59,7 +58,9 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             "text-valign": "center",
             "text-halign": "center",
             "font-size": "6px",
-            "border-style": "solid", "border-width": "1px","border-color": "#ff005d"
+            "border-style": "solid",
+            "border-width": "1px",
+            "border-color": "#ff005d",
           },
         },
         {
@@ -76,7 +77,6 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     });
   };
 
-  // Initial fetch only – complete graph load.
   const updateGraph = (data: any) => {
     if (!data || !data.nodes || !data.links) {
       console.error("Invalid graph data received:", data);
@@ -88,13 +88,11 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     cy.batch(() => {
       cy.elements().remove();
 
-      // Add nodes
       const nodes = data.nodes.map((note: any, index: number) => ({
         data: { id: `n${note.id}`, label: note.title },
         position: { x: index * 120, y: index * 80 },
       }));
 
-      // Add edges
       const edges = data.links.map((link: any) => ({
         data: { source: `n${link.from_note_id}`, target: `n${link.to_note_id}` },
       }));
@@ -111,7 +109,6 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }, 1000);
   };
 
-  // Initial fetch of the graph data
   useEffect(() => {
     initializeCytoscape();
     fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
@@ -122,7 +119,6 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       .catch((error) => console.error("Error fetching graph:", error));
   }, []);
 
-  // Handle node and edge selection
   useEffect(() => {
     if (!cyRef.current) return;
     const cy = cyRef.current;
@@ -130,7 +126,9 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     const handleNodeClick = (event: any) => {
       setSelectedEdge(null);
       const nodeId = event.target.id().substring(1);
-      fetch(`http://localhost:5000/api/notes/${nodeId}`, { credentials: "include" })
+      fetch(`http://localhost:5000/api/notes/${nodeId}`, {
+        credentials: "include",
+      })
         .then((res) => res.json())
         .then((data) => {
           setSelectedNote(data);
@@ -162,19 +160,25 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     };
   }, []);
 
-  // Handle note update without full refresh
   const handleUpdateNote = async () => {
     if (!selectedNote) return;
-    const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ title: editTitle, content: editContent }),
-    });
+    const response = await fetch(
+      `http://localhost:5000/api/notes/${selectedNote.id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: editTitle, content: editContent }),
+      }
+    );
 
     if (response.ok) {
       alert("Note updated successfully!");
-      setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
+      setSelectedNote({
+        ...selectedNote,
+        title: editTitle,
+        content: editContent,
+      });
       if (cyRef.current) {
         const node = cyRef.current.getElementById(`n${selectedNote.id}`);
         node.data("label", editTitle);
@@ -184,13 +188,12 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }
   };
 
-  // Handle note deletion without full refresh
   const handleDeleteNote = async () => {
     if (!selectedNote) return;
-    const response = await fetch(`http://localhost:5000/api/notes/${selectedNote.id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    const response = await fetch(
+      `http://localhost:5000/api/notes/${selectedNote.id}`,
+      { method: "DELETE", credentials: "include" }
+    );
 
     if (response.ok) {
       alert("Note deleted successfully!");
@@ -203,7 +206,6 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }
   };
 
-  // Handle unlinking an edge without full refresh
   const handleUnlinkEdge = async () => {
     if (!selectedEdge) return;
     const fromNoteId = selectedEdge.source.substring(1);
@@ -231,13 +233,15 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }
   };
 
-  // Expose incremental update functions to parent components
   useImperativeHandle(ref, () => ({
     addNode(newNote: any) {
       if (cyRef.current) {
         cyRef.current.add({
           data: { id: `n${newNote.id}`, label: newNote.title },
-          position: { x: Math.random() * 500, y: Math.random() * 500 },
+          position: {
+            x: Math.random() * 500,
+            y: Math.random() * 500,
+          },
         });
       }
     },
@@ -275,35 +279,26 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   console.log("Selected Note Tags:", selectedNote?.tags);
 
   return (
-    <div style={styles.graphContainer}>
-      <div ref={graphContainerRef} style={styles.cyContainer}></div>
+    <div className="graph-container">
+      <div ref={graphContainerRef} className="cy-container"></div>
 
       {selectedNote && (
-        <div style={styles.notePreview}>
-          <h3 style={styles.noteTitle}>Edit Note</h3>
+        <div className="note-preview">
+          <h3 className="note-title">Edit Note</h3>
           <input
             type="text"
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            style={styles.input}
+            className="input"
           />
           <RichTextEditor content={editContent} onChange={setEditContent} />
 
           {(selectedNote?.tags?.length ?? 0) > 0 && (
-            <div style={{ marginBottom: "10px", width: "100%" }}>
-              <label style={{ fontWeight: "bold", fontSize: "14px" }}>Tags</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "5px" }}>
+            <div className="tags-container">
+              <label className="tags-label">Tags</label>
+              <div className="tags-list">
                 {selectedNote?.tags?.map((tag: string) => (
-                  <span
-                    key={tag}
-                    style={{
-                      backgroundColor: "#444",
-                      color: "white",
-                      padding: "4px 8px",
-                      borderRadius: "12px",
-                      fontSize: "12px",
-                    }}
-                  >
+                  <span key={tag} className="tag">
                     #{tag}
                   </span>
                 ))}
@@ -311,23 +306,23 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             </div>
           )}
 
-          <button onClick={handleUpdateNote} style={styles.saveButton}>
+          <button onClick={handleUpdateNote} className="save-button">
             Save
           </button>
-          <button onClick={handleDeleteNote} style={styles.deleteButton}>
+          <button onClick={handleDeleteNote} className="delete-button">
             Delete
           </button>
         </div>
       )}
 
       {selectedEdge && (
-        <div style={styles.notePreview}>
-          <h3 style={styles.noteTitle}>Unlink Connection</h3>
+        <div className="note-preview">
+          <h3 className="note-title">Unlink Connection</h3>
           <p>
             Unlink connection between "{selectedEdge.sourceLabel}" and "
             {selectedEdge.targetLabel}"
           </p>
-          <button onClick={handleUnlinkEdge} style={styles.unlinkButton}>
+          <button onClick={handleUnlinkEdge} className="unlink-button">
             Unlink
           </button>
         </div>
@@ -335,104 +330,5 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     </div>
   );
 });
-
-
-
-// Styles
-const styles: Record<string, React.CSSProperties> = {
-  graphContainer: {
-    // transforms for node graph interaction div / background
-    width: "92vw",
-    height: "75vh",
-    backgroundColor: "#131821",
-    position: "inherit",
-    top: "4vh",
-    left: "0",
-    bottom: "30vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    borderStyle: "solid",borderColor: "#ff005d", borderWidth: "2px",
-    zIndex: 1,
-  },
-  cyContainer: {
-    // transforms for node graph render div /forground
-    width: "92vw",
-    height: "75vh",
-    position: "initial",
-    display: "flex",
-    justifyContent: "center",
-    left: "0",
-    top: "4vh",
-    bottom:"0",
-    zIndex: 2,
-  },
-  notePreview: {
-    position: "absolute",
-    top: "20px",
-    right: "20px",
-    width: "350px",
-    maxHeight: "70vh",
-    overflowY: "auto",
-    backgroundColor: "#0D1B2A",
-    color:"#ff005d",
-    padding: "20px",
-    borderRadius: "10px",
-    boxShadow: "0px 6px 10px rgba(0, 0, 0, 0.3)",
-    zIndex: 10,
-  },
-  noteTitle: {
-    textAlign: "center",
-    fontSize: "18px",
-    color:"#ff005d",
-    fontWeight: "bold",
-    marginBottom: "10px",
-  },
-  input: {
-    width: "94%",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  textarea: {
-    width: "94%",
-    height: "150px",
-    padding: "10px",
-    marginBottom: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  saveButton: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "#29A19C",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    marginBottom: "10px",
-  },
-  deleteButton: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "red",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    marginBottom: "10px",
-  },
-  unlinkButton: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "#FF9900",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-};
 
 export default GraphView;
