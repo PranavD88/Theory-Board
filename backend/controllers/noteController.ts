@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import pool from "../db";
+import fs from "fs";
+import pdfParse from "pdf-parse";
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => { 
@@ -228,3 +230,40 @@ export const deleteNote = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
+// Import Pdf
+export const importPdf = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+  
+      const userId = req.userId;
+      console.log("Importing PDF for user ID:", userId);
+  
+      const dataBuffer = fs.readFileSync(req.file.path);
+      const pdfData = await pdfParse(dataBuffer);
+      const text = pdfData.text.trim();
+  
+      if (!text) {
+        res.status(400).json({ error: "PDF contains no readable text" });
+        return;
+      }
+  
+      const title = req.file.originalname.replace(/\.pdf$/, "") || "Untitled Note";
+  
+      const result = await pool.query(
+        "INSERT INTO notes (title, content, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING *",
+        [title, text, userId, []]
+      );
+  
+      fs.unlinkSync(req.file.path);
+  
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error("Error importing PDF:", error);
+      res.status(500).json({ error: "Failed to import PDF" });
+    }
+  };
+  
