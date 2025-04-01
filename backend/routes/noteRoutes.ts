@@ -11,7 +11,9 @@ import {
   updateNote, 
   unlinkNotes, 
   importPdf,
-  importDocx
+  importDocx,
+  exportNoteAsPDF,
+  exportNoteAsDOCX
 } from "../controllers/noteController";
 import multer from "multer";
 
@@ -56,6 +58,8 @@ router.post("/", authMiddleware, async (req: Request, res: Response): Promise<vo
 
 router.post("/import/pdf", authMiddleware, upload.single("file"), importPdf);
 router.post("/import/docx", authMiddleware, upload.single("file"), importDocx);
+router.get("/export/pdf/:id", authMiddleware, exportNoteAsPDF);
+router.get("/export/docx/:id", authMiddleware, exportNoteAsDOCX);
 router.put("/:id", authMiddleware, updateNote);
 router.get("/graph", authMiddleware, getGraphData);
 router.post("/create", authMiddleware, createNote);

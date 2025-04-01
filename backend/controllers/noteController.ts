@@ -2,13 +2,10 @@ import { Request, Response } from "express";
 import pool from "../db";
 import fs from "fs";
 import pdfParse from "pdf-parse";
-import { Document } from "docx";
-import { Document as DocxDoc } from "docx";
-import * as docx from "docx";
-import { readFileSync } from "fs";
-import { parse } from "path";
-import { promisify } from "util";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 import * as mammoth from "mammoth";
+import PDFDocument from "pdfkit";
+
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => { 
@@ -272,7 +269,7 @@ export const importPdf = async (req: Request, res: Response): Promise<void> => {
       console.error("Error importing PDF:", error);
       res.status(500).json({ error: "Failed to import PDF" });
     }
-  };
+};
 
 // Import DOCX file
 export const importDocx = async (req: Request, res: Response): Promise<void> => {
@@ -306,5 +303,79 @@ export const importDocx = async (req: Request, res: Response): Promise<void> => 
       console.error("Error importing DOCX:", error);
       res.status(500).json({ error: "Failed to import DOCX" });
     }
-  };
+};
   
+// Export PDF File
+export const exportNoteAsPDF = async (req: Request, res: Response) => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const userId = req.userId;
+
+    const result = await pool.query(
+      "SELECT title, content FROM notes WHERE id = $1 AND user_id = $2",
+      [noteId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "Note not found" });
+    }
+
+    const { title, content } = result.rows[0];
+
+    const doc = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${title}.pdf"`);
+
+    doc.pipe(res);
+    doc.fontSize(18).text(title, { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(content);
+    doc.end();
+  } catch (error) {
+    console.error("PDF export error:", error);
+    res.status(500).json({ error: "Failed to export PDF" });
+  }
+};
+
+// Export DOCX File
+export const exportNoteAsDOCX = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const noteId = parseInt(req.params.id);
+    const userId = req.userId;
+
+    const result = await pool.query(
+      "SELECT title, content, tags FROM notes WHERE id = $1 AND user_id = $2",
+      [noteId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "Note not found or unauthorized" });
+      return;
+    }
+
+    const { title, content, tags } = result.rows[0];
+
+    const paragraphs = [];
+
+    paragraphs.push(new Paragraph({ text: title || "Untitled", heading: HeadingLevel.HEADING_1 }));
+
+    paragraphs.push(new Paragraph(content || ""));
+
+    if (Array.isArray(tags) && tags.length > 0) {
+      paragraphs.push(new Paragraph({ text: "Tags:", heading: HeadingLevel.HEADING_2 }));
+      for (const tag of tags) {
+        paragraphs.push(new Paragraph(`#${tag}`));
+      }
+    }
+
+    const doc = new Document({ sections: [{ children: paragraphs }] });
+    const buffer = await Packer.toBuffer(doc);
+
+    res.setHeader("Content-Disposition", `attachment; filename="${title}.docx"`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.send(buffer);
+  } catch (error) {
+    console.error("DOCX export error:", error);
+    res.status(500).json({ error: "Failed to export DOCX" });
+  }
+};

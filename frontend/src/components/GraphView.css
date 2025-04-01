@@ -115,3 +115,23 @@
   font-weight: 500;
   display: inline-block;
 }
+
+.export-button {
+  width: 50%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.pdf-export {
+  background-color: #e74c3c;
+}
+
+.docx-export {
+  background-color: #5bc0de;
+}
