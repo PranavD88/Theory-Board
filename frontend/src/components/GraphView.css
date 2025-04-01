@@ -107,13 +107,66 @@
 }
 
 .tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   background-color: #8b34db;
   color: white;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
-  display: inline-block;
+  transition: background-color 0.2s ease;
+}
+
+.delete-tag-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #ff4c61;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 12px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  padding: 0;
+}
+
+.tag:hover .delete-tag-btn {
+  display: flex;
+}
+
+.tag input {
+  background: transparent;
+  border: none;
+  color: white;
+  width: auto;
+  max-width: 100px;
+  font-size: 12px;
+  outline: none;
+}
+
+.add-tag-input {
+  width: 100%;
+  padding: 6px 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #8b34db;
+  background-color: #1e1e2f;
+  color: white;
+  font-size: 13px;
+}
+
+.tag-input-wrapper {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
 }
 
 .export-button {
