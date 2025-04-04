@@ -8,6 +8,7 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null); // Track error message
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -29,9 +30,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     } catch (error) {
       console.error("Login error:", error);
       if (error instanceof Error) {
-        alert(error.message);
+        setError(error.message); // Set error message
       } else {
-        alert("An unexpected error occurred.");
+        setError("An unexpected error occurred.");
       }
     }
   };
@@ -41,6 +42,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       <div style={styles.box}>
         <h1 style={styles.title}>Theory Board</h1>
         <p style={styles.subtitle}>Your New Personal Knowledge Management System</p>
+
+        {error && (
+          <div style={styles.errorBox}>
+            <span style={styles.errorIcon}>✖</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         <div style={styles.inputContainer}>
           <input 
@@ -102,6 +110,21 @@ const styles: Record<string, CSSProperties> = {
     fontSize: "14px",
     color: "#778DA9",
     marginBottom: "20px",
+  },
+  errorBox: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFCCCC",
+    color: "#CC0000",
+    padding: "10px",
+    borderRadius: "4px",
+    marginBottom: "15px",
+    width: "90%",
+  },
+  errorIcon: {
+    marginRight: "8px",
+    fontWeight: "bold",
   },
   inputContainer: {
     width: "100%",
