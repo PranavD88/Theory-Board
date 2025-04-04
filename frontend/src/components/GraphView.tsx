@@ -37,6 +37,9 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [newTag, setNewTag] = useState("");
+  const [dragPos, setDragPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const [clickOffset, setClickOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const initializeCytoscape = () => {
     if (!graphContainerRef.current) return;
@@ -121,6 +124,31 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   }, []);
 
   useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      setDragPos((prev) => ({
+        x: prev.x + (e.clientX - clickOffset.x),
+        y: prev.y + (e.clientY - clickOffset.y),
+      }));
+      setClickOffset({ x: e.clientX, y: e.clientY })
+    };
+  
+    const handleMouseUp = () => {
+      setDragging(false);
+    };
+  
+    if (dragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+  
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging, clickOffset.x, clickOffset.y]);
+
+  useEffect(() => {
     if (!cyRef.current) return;
     const cy = cyRef.current;
 
@@ -137,6 +165,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           setSelectedNote(data);
           setEditTitle(data.title || "");
           setEditContent(data.content || "");
+          setDragPos({ x: 0, y: 0 });
         })
         .catch((error) => console.error("Error fetching note:", error));
     };
@@ -330,7 +359,25 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       <div ref={graphContainerRef} className="cy-container"></div>
   
       {selectedNote && (
-        <div className="note-preview">
+        <div
+          key={selectedNote.id}
+          className="note-preview"
+          style={{
+            position: "absolute",
+            top: dragPos.y,
+            left: dragPos.x,
+          }}
+          >
+            <div
+              className="drag-handle"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setDragging(true);
+                setClickOffset({ x: e.clientX, y: e.clientY });
+              }}
+            >
+              ⠿ Drag
+            </div>
           <h3 className="note-title">Edit Note</h3>
           <input
             type="text"
@@ -405,7 +452,15 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       )}
   
       {selectedEdge && (
-        <div className="note-preview">
+        <div
+          className="note-preview"
+          onMouseDown={() => setDragging(true)}
+          style={{
+            left: `${dragPos.x}px`,
+            top: `${dragPos.y}px`,
+            position: "absolute",
+          }}
+        >
           <h3 className="note-title">Unlink Connection</h3>
           <p>
             Unlink connection between "{selectedEdge.sourceLabel}" and "
