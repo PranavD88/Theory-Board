@@ -1,89 +1,59 @@
-.graph-container {
-  width: 92vw;
-  height: 75vh;
-  background-color: #131821;
-  position: inherit;
-  top: 4vh;
-  left: 0;
-  bottom: 30vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  border: 2px solid #ff005d;
-  z-index: 1;
-}
-
-.cy-container {
-  width: 92vw;
-  height: 75vh;
-  position: initial;
-  display: flex;
-  justify-content: center;
-  left: 0;
-  top: 4vh;
-  bottom: 0;
-  z-index: 2;
-}
-
-.note-preview {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 350px;
-  max-height: 70vh;
-  overflow-y: auto;
-  background-color: #0D1B2A;
-  color: #ff005d;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-}
-
-.note-title {
-  text-align: center;
-  font-size: 18px;
-  color: #ff005d;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
 .input,
-.textarea {
-  width: 94%;
+.textarea,
+.add-tag-input,
+.create-button,
+.save-button,
+.delete-button,
+.unlink-button,
+.export-button {
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 6px;
+  font-size: 14px;
+  border: none;
+}
+
+.input,
+.add-tag-input {
   border: 1px solid #ccc;
 }
 
 .textarea {
   height: 150px;
-}
-
-.save-button,
-.delete-button,
-.unlink-button {
-  width: 100%;
-  padding: 12px;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-bottom: 10px;
+  resize: none;
 }
 
 .save-button {
   background-color: #29A19C;
+  color: white;
 }
 
 .delete-button {
   background-color: red;
+  color: white;
 }
 
 .unlink-button {
   background-color: #FF9900;
+  color: white;
+}
+
+.export-button {
+  background-color: #5bc0de;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.pdf-export {
+  background-color: #e74c3c;
+}
+
+.docx-export {
+  background-color: #5bc0de;
 }
 
 .tags-container {
@@ -152,45 +122,22 @@
   outline: none;
 }
 
-.add-tag-input {
-  width: 100%;
-  padding: 6px 10px;
-  margin-top: 8px;
-  border-radius: 6px;
-  border: 1px solid #8b34db;
-  background-color: #1e1e2f;
-  color: white;
-  font-size: 13px;
-}
-
 .tag-input-wrapper {
   margin-top: 12px;
   display: flex;
   gap: 8px;
+  flex-direction: column;
 }
 
-.export-button {
-  width: 50%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: none;
-  border-radius: 6px;
+.add-tag-input {
+  background-color: #1e1e2f;
   color: white;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-}
-
-.pdf-export {
-  background-color: #e74c3c;
-}
-
-.docx-export {
-  background-color: #5bc0de;
+  border: 1px solid #8b34db;
 }
 
 .drag-handle {
   width: 100%;
+  box-sizing: border-box;
   background-color: #222;
   color: white;
   padding: 6px;
@@ -199,4 +146,67 @@
   font-weight: bold;
   border-bottom: 1px solid #444;
   user-select: none;
+  margin-bottom: 10px;
+}
+
+.note-preview {
+  background-color: #0D1B2A;
+  color: #ff005d;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-title {
+  text-align: center;
+  font-size: 18px;
+  color: #ff005d;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.graph-container {
+  width: 92vw;
+  height: 75vh;
+  background-color: #131821;
+  position: inherit;
+  top: 4vh;
+  left: 0;
+  bottom: 30vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border: 2px solid #ff005d;
+  z-index: 1;
+}
+
+.cy-container {
+  width: 92vw;
+  height: 75vh;
+  position: initial;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  top: 4vh;
+  bottom: 0;
+  z-index: 2;
+}
+
+.rich-editor {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.full-width {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }

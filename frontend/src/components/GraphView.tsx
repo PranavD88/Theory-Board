@@ -8,6 +8,7 @@ import React, {
 import cytoscape from "cytoscape";
 import RichTextEditor from "./RichTextEditor";
 import "./GraphView.css";
+import { Rnd } from 'react-rnd';
 
 export interface GraphViewHandles {
   addNode: (newNote: any) => void;
@@ -359,33 +360,44 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       <div ref={graphContainerRef} className="cy-container"></div>
   
       {selectedNote && (
-        <div
+        <Rnd
           key={selectedNote.id}
-          className="note-preview"
-          style={{
-            position: "absolute",
-            top: dragPos.y,
-            left: dragPos.x,
+          default={{
+            x: dragPos.x,
+            y: dragPos.y,
+            width: 400,
+            height: 660,
           }}
+          minWidth={300}
+          minHeight={200}
+          bounds="parent"
+          className="note-preview"
+          dragHandleClassName="drag-handle"
+        >
+          <div
+            className="drag-handle"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setDragging(true);
+              setClickOffset({ x: e.clientX, y: e.clientY });
+            }}
           >
-            <div
-              className="drag-handle"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setDragging(true);
-                setClickOffset({ x: e.clientX, y: e.clientY });
-              }}
-            >
-              ⠿ Drag
-            </div>
+            ⠿ Drag
+          </div>
           <h3 className="note-title">Edit Note</h3>
-          <input
-            type="text"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            className="input"
-          />
-          <RichTextEditor content={editContent} onChange={setEditContent} />
+
+          <div className="full-width">
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="input"
+            />
+          </div>
+
+          <div className="full-width">
+            <RichTextEditor content={editContent} onChange={setEditContent} />
+          </div>
   
           <div className="tags-container">
             <label className="tags-label">Tags</label>
@@ -407,13 +419,15 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
             </div>
   
             <div className="tag-input-wrapper">
-              <input
-                type="text"
-                placeholder="Add new tag"
-                className="input"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-              />
+              <div className="full-width">
+                <input
+                  type="text"
+                  placeholder="Add new tag"
+                  className="add-tag-input"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                />
+              </div>
               <button
                 className="create-button"
                 onClick={() => {
@@ -448,7 +462,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           >
             Export as DOCX
           </button>
-        </div>
+        </Rnd>
       )}
   
       {selectedEdge && (

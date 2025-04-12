@@ -27,7 +27,7 @@ const TagInput = ({ tags, setTags }: TagInputProps) => {
   }
 
   return (
-    <div style={{ width: "93%", marginBottom: "10px" }}>
+    <div style={{ width: "100%", marginBottom: "10px" }}>
       <label style={{ display: "block", marginBottom: "4px", fontSize: "14px" }}>
         Tags
       </label>
