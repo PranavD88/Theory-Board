@@ -4,11 +4,12 @@ import React, {
   useState,
   forwardRef,
   useImperativeHandle,
+  useCallback,
 } from "react";
 import cytoscape from "cytoscape";
 import RichTextEditor from "./RichTextEditor";
 import "./GraphView.css";
-import { Rnd } from 'react-rnd';
+import { Rnd } from "react-rnd";
 
 export interface GraphViewHandles {
   addNode: (newNote: any) => void;
@@ -17,6 +18,13 @@ export interface GraphViewHandles {
   removeEdge: (fromNoteId: number, toNoteId: number) => void;
   clearGraph: () => void;
 }
+
+type NoteType = {
+  id: number;
+  title: string;
+  content: string;
+  tags?: string[];
+};
 
 type SelectedEdge = {
   source: string;
@@ -28,28 +36,21 @@ type SelectedEdge = {
 const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-  const [selectedNote, setSelectedNote] = useState<{
-    id: number;
-    title: string;
-    content: string;
-    tags?: string[];
-  } | null>(null);
+  const [openNotes, setOpenNotes] = useState<NoteType[]>([]);
   const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
-  const [newTag, setNewTag] = useState("");
+  const [newTag, setNewTag] = useState<string>("");
   const [dragPos, setDragPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
+  const [dragging, setDragging] = useState<boolean>(false);
   const [clickOffset, setClickOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const initializeCytoscape = () => {
+  const initializeCytoscape = useCallback(() => {
     if (!graphContainerRef.current) return;
     if (cyRef.current) {
       cyRef.current.destroy();
       cyRef.current = null;
     }
-
-    cyRef.current = cytoscape({
+  
+    const cy = cytoscape({
       container: graphContainerRef.current,
       layout: { name: "preset" },
       elements: [],
@@ -80,298 +81,240 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       zoom: 1,
       pan: { x: 0, y: 0 },
     });
-  };
-
-  const updateGraph = (data: any) => {
-    if (!data || !data.nodes || !data.links) {
-      console.error("Invalid graph data received:", data);
-      return;
-    }
-    if (!cyRef.current) return;
-    const cy = cyRef.current;
-
-    cy.batch(() => {
-      cy.elements().remove();
-
-      const nodes = data.nodes.map((note: any, index: number) => ({
-        data: { id: `n${note.id}`, label: note.title },
-        position: { x: index * 120, y: index * 80 },
-      }));
-
-      const edges = data.links.map((link: any) => ({
-        data: { source: `n${link.from_note_id}`, target: `n${link.to_note_id}` },
-      }));
-
-      cy.add([...nodes, ...edges]);
-    });
-
-    cy.layout({ name: "cose", animate: true, fit: true, padding: 50 }).run();
-
-    setTimeout(() => {
-      cy.fit();
-      cy.center();
-      cy.resize();
-    }, 1000);
-  };
-
-  useEffect(() => {
-    initializeCytoscape();
-    fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        updateGraph(data);
-      })
-      .catch((error) => console.error("Error fetching graph:", error));
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!dragging) return;
-      setDragPos((prev) => ({
-        x: prev.x + (e.clientX - clickOffset.x),
-        y: prev.y + (e.clientY - clickOffset.y),
-      }));
-      setClickOffset({ x: e.clientX, y: e.clientY })
-    };
   
-    const handleMouseUp = () => {
-      setDragging(false);
-    };
+    cyRef.current = cy;
   
-    if (dragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
-    }
-  
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [dragging, clickOffset.x, clickOffset.y]);
-
-  useEffect(() => {
-    if (!cyRef.current) return;
-    const cy = cyRef.current;
-
-    const handleNodeClick = (event: any) => {
+    cy.on("tap", "node", async (event) => {
       setSelectedEdge(null);
-      const nodeId = event.target.id().substring(1);
-    
-      fetch(`http://localhost:5000/api/notes/${nodeId}`, {
-        credentials: "include",
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log("Loaded note data:", data);
-          setSelectedNote(data);
-          setEditTitle(data.title || "");
-          setEditContent(data.content || "");
-          setDragPos({ x: 0, y: 0 });
-        })
-        .catch((error) => console.error("Error fetching note:", error));
-    };
-
-    const handleEdgeClick = (event: any) => {
-      setSelectedNote(null);
+      const rawId = event.target.id();
+      const id = rawId.startsWith("n") ? Number(rawId.slice(1)) : Number(rawId);
+  
+      if (cyRef.current && openNotes.some((note) => note.id === id)) return;
+  
+      try {
+        const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch note");
+        const data = await res.json();
+        setOpenNotes((prev) => [...prev, data]);
+      } catch (err) {
+        console.error("Error fetching note:", err);
+      }
+    });
+  
+    cy.on("tap", "edge", (event) => {
       const edgeData = event.target.data();
       const sourceNode = cy.getElementById(edgeData.source);
       const targetNode = cy.getElementById(edgeData.target);
       setSelectedEdge({
         source: edgeData.source,
         target: edgeData.target,
-        sourceLabel: sourceNode ? sourceNode.data("label") : edgeData.source,
-        targetLabel: targetNode ? targetNode.data("label") : edgeData.target,
+        sourceLabel: sourceNode.data("label"),
+        targetLabel: targetNode.data("label"),
       });
-    };
-
-    cy.on("tap", "node", handleNodeClick);
-    cy.on("tap", "edge", handleEdgeClick);
-
-    return () => {
-      cy.off("tap", "node", handleNodeClick);
-      cy.off("tap", "edge", handleEdgeClick);
-    };
+    });
+  }, [graphContainerRef, openNotes, setOpenNotes, setSelectedEdge]);
+  
+  const updateGraph = useCallback((data: any) => {
+    if (!data?.nodes || !data?.links || !cyRef.current) return;
+    const cy = cyRef.current;
+  
+    cy.batch(() => {
+      const existingNodeIds = new Set(cy.nodes().map((n) => n.id()));
+      const incomingNodeIds = new Set(data.nodes.map((n: any) => `n${n.id}`));
+  
+      data.nodes.forEach((note: any, i: number) => {
+        const id = `n${note.id}`;
+        if (!existingNodeIds.has(id)) {
+          cy.add({
+            data: { id, label: note.title },
+            position: { x: i * 120, y: i * 80 },
+          });
+        } else {
+          const node = cy.getElementById(id);
+          node.data("label", note.title);
+        }
+      });
+  
+      cy.nodes().forEach((node) => {
+        if (!incomingNodeIds.has(node.id())) {
+          node.remove();
+        }
+      });
+  
+      cy.edges().remove();
+      const edges = data.links.map((link: any) => ({
+        data: {
+          source: `n${link.from_note_id}`,
+          target: `n${link.to_note_id}`,
+        },
+      }));
+      cy.add(edges);
+    });
+  
   }, []);
 
-  const handleUpdateNote = async () => {
-    if (!selectedNote) return;
-    const response = await fetch(
-      `http://localhost:5000/api/notes/${selectedNote.id}`,
-      {
+  // Dragging logic for note windows
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      setDragPos((prev) => ({ x: prev.x + (e.clientX - clickOffset.x), y: prev.y + (e.clientY - clickOffset.y) }));
+      setClickOffset({ x: e.clientX, y: e.clientY });
+    };
+    const handleMouseUp = () => setDragging(false);
+    if (dragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [dragging, clickOffset]);
+
+useEffect(() => {
+  initializeCytoscape();
+
+  fetch("http://localhost:5000/api/notes/graph", {
+    credentials: "include",
+  })
+    .then((res) => res.json())
+    .then(updateGraph)
+    .catch((err) => console.error("Error loading graph data:", err));
+}, []);
+
+  // Update note on server
+  const handleUpdateNote = async (note: NoteType) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/notes/${note.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title: editTitle, content: editContent, tags: selectedNote?.tags ?? [] }),
-      }
-    );
-
-    if (response.ok) {
-      alert("Note updated successfully!");
-      setSelectedNote({
-        ...selectedNote,
-        title: editTitle,
-        content: editContent,
+        body: JSON.stringify(note),
       });
-      if (cyRef.current) {
-        const node = cyRef.current.getElementById(`n${selectedNote.id}`);
-        node.data("label", editTitle);
-      }
-    } else {
-      alert("Error updating note.");
+      if (!res.ok) throw new Error();
+      cyRef.current?.getElementById(`n${note.id}`).data("label", note.title);
+      alert("Note updated successfully!");
+    } catch {
+      alert("Error updating note");
     }
   };
 
-  const handleDeleteNote = async () => {
-    if (!selectedNote) return;
-    const response = await fetch(
-      `http://localhost:5000/api/notes/${selectedNote.id}`,
-      { method: "DELETE", credentials: "include" }
-    );
-
-    if (response.ok) {
-      alert("Note deleted successfully!");
-      if (cyRef.current) {
-        cyRef.current.getElementById(`n${selectedNote.id}`).remove();
-      }
-      setSelectedNote(null);
-    } else {
-      alert("Error deleting note.");
-    }
-  };
-
-  const handleUnlinkEdge = async () => {
-    if (!selectedEdge) return;
-    const fromNoteId = selectedEdge.source.substring(1);
-    const toNoteId = selectedEdge.target.substring(1);
-    const response = await fetch(
-      `http://localhost:5000/api/notes/unlink?from_note_id=${fromNoteId}&to_note_id=${toNoteId}`,
-      { method: "DELETE", credentials: "include" }
-    );
-
-    if (response.ok) {
-      alert("Link unlinked successfully!");
-      if (cyRef.current) {
-        cyRef.current.edges().forEach((edge) => {
-          if (
-            edge.source().id() === `n${fromNoteId}` &&
-            edge.target().id() === `n${toNoteId}`
-          ) {
-            edge.remove();
-          }
-        });
-      }
-      setSelectedEdge(null);
-    } else {
-      alert("Error unlinking connection.");
-    }
-  };
-
-  const handleExportPDF = async (noteId: number) => {
+  // Delete note from server and graph
+  const handleDeleteNote = async (note: NoteType) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notes/export/pdf/${noteId}`, {
-        method: "GET",
+      const res = await fetch(`http://localhost:5000/api/notes/${note.id}`, {
+        method: "DELETE",
         credentials: "include",
       });
-  
-      if (!response.ok) throw new Error("Failed to export PDF");
-  
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      if (!res.ok) throw new Error();
+      cyRef.current?.getElementById(`n${note.id}`).remove();
+      setOpenNotes((prev) => prev.filter((n) => n.id !== note.id));
+      alert("Note deleted successfully!");
+    } catch {
+      alert("Error deleting note");
+    }
+  };
+
+  // Unlink selected edge
+  const handleUnlinkEdge = async () => {
+    if (!selectedEdge) return;
+    const fromId = selectedEdge.source.replace(/^n/, "");
+    const toId = selectedEdge.target.replace(/^n/, "");
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/notes/unlink?from_note_id=${fromId}&to_note_id=${toId}`,
+        { method: "DELETE", credentials: "include" }
+      );
+      if (!res.ok) throw new Error();
+      cyRef.current?.edges().forEach((edge) => {
+        if (edge.source().id() === selectedEdge.source && edge.target().id() === selectedEdge.target) {
+          edge.remove();
+        }
+      });
+      setSelectedEdge(null);
+      alert("Link unlinked successfully!");
+    } catch {
+      alert("Error unlinking connection");
+    }
+  };
+
+  // Export note as PDF
+  const handleExportPDF = async (noteId: number) => {
+    try {
+      const res = await fetch(`/api/notes/export/pdf/${noteId}`, { credentials: "include" });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${editTitle || "note"}.pdf`;
+      a.download = `note_${noteId}.pdf`;
       a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Error exporting PDF:", err);
+      URL.revokeObjectURL(url);
+    } catch {
       alert("Error exporting PDF");
     }
   };
 
+  // Export note as DOCX
   const handleExportDOCX = async (noteId: number) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notes/export/docx/${noteId}`, {
-        method: "GET",
-        credentials: "include",
-      });
-  
-      if (!response.ok) throw new Error("Failed to export DOCX");
-  
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const res = await fetch(`/api/notes/export/docx/${noteId}`, { credentials: "include" });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${editTitle || "note"}.docx`;
+      a.download = `note_${noteId}.docx`;
       a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Error exporting DOCX:", err);
+      URL.revokeObjectURL(url);
+    } catch {
       alert("Error exporting DOCX");
     }
-  };  
+  };
 
   useImperativeHandle(ref, () => ({
-    addNode(newNote: any) {
-      if (cyRef.current) {
-        cyRef.current.add({
-          data: { id: `n${newNote.id}`, label: newNote.title },
-          position: {
-            x: Math.random() * 500,
-            y: Math.random() * 500,
-          },
-        });
-      }
+    addNode: (newNote: any) => {
+      cyRef.current?.add({
+        data: { id: `n${newNote.id}`, label: newNote.title },
+        position: { x: Math.random() * 500, y: Math.random() * 500 },
+      });
     },
-    addEdge(fromNoteId: number, toNoteId: number) {
-      if (cyRef.current) {
-        cyRef.current.add({
-          data: { source: `n${fromNoteId}`, target: `n${toNoteId}` },
-        });
-      }
+    addEdge: (fromNoteId: number, toNoteId: number) => {
+      cyRef.current?.add({ data: { source: `n${fromNoteId}`, target: `n${toNoteId}` } });
     },
-    removeNode(noteId: number) {
-      if (cyRef.current) {
-        cyRef.current.getElementById(`n${noteId}`).remove();
-      }
+    removeNode: (noteId: number) => {
+      cyRef.current?.getElementById(`n${noteId}`).remove();
     },
-    removeEdge(fromNoteId: number, toNoteId: number) {
-      if (cyRef.current) {
-        cyRef.current.edges().forEach((edge) => {
-          if (
-            edge.source().id() === `n${fromNoteId}` &&
-            edge.target().id() === `n${toNoteId}`
-          ) {
-            edge.remove();
-          }
-        });
-      }
+    removeEdge: (fromNoteId: number, toNoteId: number) => {
+      cyRef.current?.edges().forEach((edge) => {
+        if (edge.source().id() === `n${fromNoteId}` && edge.target().id() === `n${toNoteId}`) {
+          edge.remove();
+        }
+      });
     },
-    clearGraph() {
-      if (cyRef.current) {
-        cyRef.current.elements().remove();
-      }
+    clearGraph: () => {
+      cyRef.current?.elements().remove();
     },
   }));
 
-  console.log("Selected Note Tags:", selectedNote?.tags);
-
   return (
     <div className="graph-container">
-      <div ref={graphContainerRef} className="cy-container"></div>
-  
-      {selectedNote && (
-        <Rnd
-          key={selectedNote.id}
+      <div ref={graphContainerRef} className="cy-container" />
+
+      {openNotes.map((note, index) => (
+        <Rnd 
+          key={note.id} 
           default={{
-            x: dragPos.x,
-            y: dragPos.y,
+            x: 100 + index * 30,
+            y: 100 + index * 30,
             width: 400,
-            height: 660,
+            height: 705,
           }}
-          minWidth={300}
-          minHeight={200}
-          bounds="parent"
-          className="note-preview"
+          minWidth={300} 
+          minHeight={200} 
+          className="note-preview" 
           dragHandleClassName="drag-handle"
         >
           <div
@@ -389,27 +332,47 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           <div className="full-width">
             <input
               type="text"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
+              value={note.title}
+              onChange={(e) => {
+                const newTitle = e.target.value;
+                setOpenNotes((prev) =>
+                  prev.map((n) =>
+                    n.id === note.id ? { ...n, title: newTitle } : n
+                  )
+                );
+              }}
               className="input"
             />
           </div>
 
           <div className="full-width">
-            <RichTextEditor content={editContent} onChange={setEditContent} />
+            <RichTextEditor
+              content={note.content}
+              onChange={(val) =>
+                setOpenNotes((prev) =>
+                  prev.map((n) =>
+                    n.id === note.id ? { ...n, content: val } : n
+                  )
+                )
+              }
+            />
           </div>
-  
+
           <div className="tags-container">
             <label className="tags-label">Tags</label>
             <div className="tags-list">
-              {(selectedNote?.tags ?? []).map((tag: string, idx: number) => (
+              {(note.tags ?? []).map((tag, idx) => (
                 <span key={`${tag}-${idx}`} className="tag">
                   #{tag}
                   <button
                     className="delete-tag-btn"
                     onClick={() => {
-                      const updatedTags = selectedNote.tags!.filter((t) => t !== tag);
-                      setSelectedNote({ ...selectedNote, tags: updatedTags });
+                      const updatedTags = note.tags!.filter((t) => t !== tag);
+                      setOpenNotes((prev) =>
+                        prev.map((n) =>
+                          n.id === note.id ? { ...n, tags: updatedTags } : n
+                        )
+                      );
                     }}
                   >
                     ×
@@ -417,7 +380,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
                 </span>
               ))}
             </div>
-  
+
             <div className="tag-input-wrapper">
               <div className="full-width">
                 <input
@@ -432,9 +395,14 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
                 className="create-button"
                 onClick={() => {
                   const trimmed = newTag.trim();
-                  if (!trimmed || selectedNote.tags?.includes(trimmed)) return;
-                  const updatedTags = [...(selectedNote.tags ?? []), trimmed];
-                  setSelectedNote({ ...selectedNote, tags: updatedTags });
+                  if (!trimmed || note.tags?.includes(trimmed)) return;
+                  setOpenNotes((prev) =>
+                    prev.map((n) =>
+                      n.id === note.id
+                        ? { ...n, tags: [...(n.tags ?? []), trimmed] }
+                        : n
+                    )
+                  );
                   setNewTag("");
                 }}
               >
@@ -442,43 +410,36 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
               </button>
             </div>
           </div>
-  
-          <button onClick={handleUpdateNote} className="save-button">
-            Save
-          </button>
-          <button onClick={handleDeleteNote} className="delete-button">
-            Delete
-          </button>
-  
-          <button
-            onClick={() => handleExportPDF(selectedNote.id)}
-            className="export-button pdf-export"
-          >
-            Export as PDF
-          </button>
-          <button
-            onClick={() => handleExportDOCX(selectedNote.id)}
-            className="export-button docx-export"
-          >
-            Export as DOCX
-          </button>
+
+          <div className="actions-row">
+            <button onClick={() => handleUpdateNote(note)} className="save-button">
+              Save
+            </button>
+            <button onClick={() => handleDeleteNote(note)} className="delete-button">
+              Delete
+            </button>
+            <button onClick={() => handleExportPDF(note.id)} className="export-button pdf-export">
+              Export as PDF
+            </button>
+            <button onClick={() => handleExportDOCX(note.id)} className="export-button docx-export">
+              Export as DOCX
+            </button>
+            <button onClick={() => setOpenNotes((prev) => prev.filter((n) => n.id !== note.id))} className="close-button">
+              Close
+            </button>
+          </div>
         </Rnd>
-      )}
-  
+      ))}
+
       {selectedEdge && (
         <div
           className="note-preview"
           onMouseDown={() => setDragging(true)}
-          style={{
-            left: `${dragPos.x}px`,
-            top: `${dragPos.y}px`,
-            position: "absolute",
-          }}
+          style={{ left: `${dragPos.x}px`, top: `${dragPos.y}px`, position: "absolute" }}
         >
           <h3 className="note-title">Unlink Connection</h3>
           <p>
-            Unlink connection between "{selectedEdge.sourceLabel}" and "
-            {selectedEdge.targetLabel}"
+            Unlink connection between "{selectedEdge.sourceLabel}" and "{selectedEdge.targetLabel}"
           </p>
           <button onClick={handleUnlinkEdge} className="unlink-button">
             Unlink
