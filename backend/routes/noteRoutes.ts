@@ -21,40 +21,62 @@ const upload = multer({ dest: "uploads/" });
 const router = express.Router();
 
 router.get("/", authMiddleware, async (req: Request, res: Response): Promise<void> => {
-    try {
-        const userId = req.userId;
-        const result = await pool.query("SELECT id, title, content FROM notes WHERE user_id = $1", [userId]);
-        res.json(result.rows);
-    } catch (error) {
-        console.error("Error fetching user's notes:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+  try {
+    const userId = req.userId;
+    const result = await pool.query("SELECT id, title, content FROM notes WHERE user_id = $1", [userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching user's notes:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 router.post("/", authMiddleware, async (req: Request, res: Response): Promise<void> => {
-    try {
-        const userId = req.userId;
-        const { title, content } = req.body;
+  try {
+    const userId = req.userId;
+    const { title, content } = req.body;
 
-        if (!title.trim()) {
-            res.status(400).json({ message: "Title is required" });
-            return;
-        }
-
-        const existingNote = await pool.query("SELECT * FROM notes WHERE user_id = $1 AND title = $2", [userId, title]);
-
-        if (existingNote.rows.length > 0) {
-            await pool.query("UPDATE notes SET content = $1 WHERE user_id = $2 AND title = $3", [content, userId, title]);
-            res.json({ message: "Note updated successfully" });
-        } else {
-            await pool.query("INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3)", [userId, title, content]);
-            res.json({ message: "Note created successfully" });
-        }
-    } catch (error) {
-        console.error("Error saving note:", error);
-        res.status(500).json({ message: "Server error" });
+    if (!title.trim()) {
+      res.status(400).json({ message: "Title is required" });
+      return;
     }
+
+    const existingNote = await pool.query("SELECT * FROM notes WHERE user_id = $1 AND title = $2", [userId, title]);
+
+    if (existingNote.rows.length > 0) {
+      await pool.query("UPDATE notes SET content = $1 WHERE user_id = $2 AND title = $3", [content, userId, title]);
+      res.json({ message: "Note updated successfully" });
+    } else {
+      await pool.query("INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3)", [userId, title, content]);
+      res.json({ message: "Note created successfully" });
+    }
+  } catch (error) {
+    console.error("Error saving note:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
+
+router.put("/position/:id", authMiddleware, async (req, res): Promise<void> => {
+    const noteId = parseInt(req.params.id);
+    const { x, y } = req.body;
+  
+    console.log("Saving position:", { id: noteId, x, y });
+  
+    if (isNaN(noteId) || typeof x !== "number" || typeof y !== "number") {
+      res.status(400).json({ error: "Invalid data" });
+      return;
+    }
+  
+    try {
+      await pool.query("UPDATE notes SET x = $1, y = $2 WHERE id = $3", [x, y, noteId]);
+      res.end();
+    } catch (err) {
+      console.error("Error updating position:", err);
+      res.status(500).json({ error: "Database error" });
+    }
+  });
+  
+
 
 router.post("/import/pdf", authMiddleware, upload.single("file"), importPdf);
 router.post("/import/docx", authMiddleware, upload.single("file"), importDocx);

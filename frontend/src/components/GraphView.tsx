@@ -82,6 +82,28 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     []
   );
 
+  const handleUpdateNote = useCallback(async (note: WindowedNote) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/notes/${note.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: note.title,
+          content: note.content,
+          tags: note.tags ?? [],
+          x: note.x ?? 100,
+          y: note.y ?? 100,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      cyRef.current?.getElementById(`n${note.id}`).data("label", note.title);
+      alert("Note updated successfully!");
+    } catch {
+      alert("Error updating note");
+    }
+  }, []);  
+
   const handleDeleteNote = useCallback(async (id: number) => {
     try {
       const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
@@ -173,35 +195,54 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     });
 
     cyRef.current = cy;
+    
+    cy.on("dragfree", "node", async (evt) => {
+      const node = evt.target;
+      const id = node.id().startsWith("n") ? node.id().slice(1) : node.id();
+      const pos = node.position();
+    
+      try {
+        await fetch(`http://localhost:5000/api/notes/position/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ x: pos.x, y: pos.y }),
+        });
+      } catch (err) {
+        console.error("Error saving node position:", err);
+      }
+    });
 
     cy.on("tap", "node", async (evt) => {
       setSelectedEdge(null);
+    
       const rawId = evt.target.id();
-      const id = rawId.startsWith("n") ? Number(rawId.slice(1)) : Number(rawId);
-
-      const existing = openNotes.find((n) => n.id === id);
-      const newZ = zCounter + 1;
-      setZCounter(newZ);
-
-      if (existing) {
-        setOpenNotes((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, z: newZ } : n))
-        );
-        return;
-      }
-
+      const id = Number(rawId.replace(/^n/, ""));
+    
       try {
         const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
           credentials: "include",
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error("Failed to fetch note");
         const noteData: NoteType = await res.json();
-        setOpenNotes((prev) => [
-          ...prev,
-          { ...noteData, z: newZ },
-        ]);
+    
+        setZCounter((zc) => {
+          const newZ = zc + 1;
+          setOpenNotes((prev) => {
+            const idx = prev.findIndex((n) => n.id === noteData.id);
+    
+            if (idx !== -1) {
+              const windows = [...prev];
+              const [existing] = windows.splice(idx, 1);
+              return [...windows, { ...existing, z: newZ }];
+            } else {
+              return [...prev, { ...noteData, z: newZ }];
+            }
+          });
+          return newZ;
+        });
       } catch (err) {
-        console.error("Error fetching note:", err);
+        console.error("Node-tap error:", err);
       }
     });
 
@@ -222,27 +263,30 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const updateGraph = useCallback((data: any) => {
     if (!data?.nodes || !data?.links || !cyRef.current) return;
     const cy = cyRef.current;
-
+  
     cy.batch(() => {
       const existing = new Set(cy.nodes().map((n) => n.id()));
       const incoming = new Set(data.nodes.map((n: any) => `n${n.id}`));
-
+  
       data.nodes.forEach((note: any, i: number) => {
         const id = `n${note.id}`;
         if (!existing.has(id)) {
           cy.add({
             data: { id, label: note.title },
-            position: { x: i * 120, y: i * 80 },
+            position: {
+              x: typeof note.x === "number" ? note.x : i * 120,
+              y: typeof note.y === "number" ? note.y : i * 80,
+            },
           });
         } else {
           cy.getElementById(id).data("label", note.title);
         }
       });
-
+  
       cy.nodes().forEach((node) => {
         if (!incoming.has(node.id())) node.remove();
       });
-
+  
       cy.edges().remove();
       cy.add(
         data.links.map((link: any) => ({
@@ -253,15 +297,27 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
         }))
       );
     });
+  
+    cyRef.current.fit(undefined, 50);
   }, []);
 
   useEffect(() => {
-    initializeCytoscape();
-    fetch("http://localhost:5000/api/notes/graph", { credentials: "include" })
-      .then((r) => r.json())
-      .then(updateGraph)
-      .catch((e) => console.error("Error loading graph:", e));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadGraph = async () => {
+      await initializeCytoscape();
+  
+      try {
+        const res = await fetch("http://localhost:5000/api/notes/graph", {
+          credentials: "include",
+        });
+        const data = await res.json();
+        updateGraph(data);
+      } catch (err) {
+        console.error("Error loading graph:", err);
+      }
+    };
+  
+    loadGraph();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -352,6 +408,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
           onRemoveTag={handleRemoveTag}
           onExportPDF={handleExportPDF}
           onExportDOCX={handleExportDOCX}
+          onSave={handleUpdateNote}
         />
       ))}
 

@@ -191,19 +191,29 @@ export const unlinkNotes = async (req: Request, res: Response) => {
 // Get all notes with their connections
 export const getGraphData = async (req: Request, res: Response) => {
     try {
-        const userId = req.userId;
-
-        const notes = await pool.query("SELECT id, title FROM notes WHERE user_id = $1", [userId]);
-
-        const links = await pool.query(
-            "SELECT from_note_id, to_note_id FROM note_links WHERE from_note_id IN (SELECT id FROM notes WHERE user_id = $1) OR to_note_id IN (SELECT id FROM notes WHERE user_id = $1)",
-            [userId]
-        );
-
-        res.json({ nodes: notes.rows, links: links.rows });
+      const userId = req.userId;
+  
+      const notes = await pool.query(
+        "SELECT id, title, x, y FROM notes WHERE user_id = $1",
+        [userId]
+      );
+  
+      const links = await pool.query(
+        `SELECT from_note_id, to_note_id 
+         FROM note_links 
+         WHERE from_note_id IN (
+           SELECT id FROM notes WHERE user_id = $1
+         ) 
+         OR to_note_id IN (
+           SELECT id FROM notes WHERE user_id = $1
+         )`,
+        [userId]
+      );
+  
+      res.json({ nodes: notes.rows, links: links.rows });
     } catch (error) {
-        console.error("Error retrieving graph data:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+      console.error("Error retrieving graph data:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
