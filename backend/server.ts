@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes";
 import noteRoutes from "./routes/noteRoutes";
+import projectRoutes from "./routes/projectRoutes";
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ app.use(cookieParser());
 // Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/projects", projectRoutes);
 
 console.log("Registered Routes:");
 [...authRoutes.stack, ...noteRoutes.stack].forEach((layer: any) => {

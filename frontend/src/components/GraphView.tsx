@@ -10,6 +10,10 @@ import cytoscape from "cytoscape";
 import "./GraphView.css";
 import NoteWindow from "./NoteWindow";
 
+export interface GraphViewProps {
+  projectId?: string;
+}
+
 export interface GraphViewHandles {
   addNode: (newNote: any) => void;
   addEdge: (fromNoteId: number, toNoteId: number) => void;
@@ -23,12 +27,12 @@ type NoteType = {
   title: string;
   content: string;
   tags?: string[];
+  x?: number;
+  y?: number;
 };
 
 type WindowedNote = NoteType & {
   z: number;
-  x?: number;
-  y?: number;
 };
 
 type SelectedEdge = {
@@ -38,7 +42,7 @@ type SelectedEdge = {
   targetLabel: string;
 } | null;
 
-const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
+const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
 
@@ -48,6 +52,29 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [clickOffset, setClickOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (!projectId) return;
+
+    const loadNotes = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/notes?projectId=${projectId}`, {
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Loaded notes for project:", data);
+        } else {
+          console.error("Failed to load notes");
+        }
+      } catch (err) {
+        console.error("Error loading project notes:", err);
+      }
+    };
+
+    loadNotes();
+  }, [projectId]);
 
   const handleAddTag = useCallback((id: number, tag: string) => {
     setOpenNotes((prev) =>
@@ -306,7 +333,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       await initializeCytoscape();
   
       try {
-        const res = await fetch("http://localhost:5000/api/notes/graph", {
+        const res = await fetch(`http://localhost:5000/api/notes/graph?projectId=${projectId}`, {
           credentials: "include",
         });
         const data = await res.json();
