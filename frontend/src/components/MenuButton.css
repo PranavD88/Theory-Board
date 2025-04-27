@@ -1,6 +1,6 @@
 .menu-container {
     position: absolute;
-    top: 5vh;
+    top: 13vh;
     left: 10px;
     z-index: 10;
   }
@@ -16,11 +16,11 @@
     top: 40px;
     left: 0;
     width: 300px;
-    height: 85vh;
-    background: #333;
+    height: 70vh;
+    background: var(--pencil);
     padding: 15px;
     border-radius: 5px;
-    color: white;
+    color: var(--punkpink);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -44,6 +44,8 @@
     margin-bottom: 10px;
     border-radius: 4px;
     border: none;
+    background-color: var(--graphite);
+    color: var(--punkpink);
   }
   
   .textarea {
@@ -57,10 +59,10 @@
   .create-button {
     width: 100%;
     padding: 12px;
-    background-color: #29a19c;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    background-color: var(--graphite);
+    color: var(--punkpink);
+    border: solid;
+    border-radius: 2px;
     cursor: pointer;
     margin-bottom: 10px;
   }
@@ -69,10 +71,12 @@
     display: inline-block;
     padding: 6px 10px;
     margin-bottom: 10px;
-    border-radius: 6px;
     font-size: 14px;
     cursor: pointer;
-    color: white;
+    background-color: var(--graphite);
+    color: var(--punkpink);
+    border: solid;
+    border-radius: 2px;
   }
   
   .import-input {
@@ -80,11 +84,36 @@
   }
   
   .import-label.pdf {
-    background-color: #e74c3c;
-    border: 1px solid #c0392b;
+    background-color: var(--graphite);
+    color: var(--punkpink);
   }
 
   .import-label.docx {
-    background-color: #3498db;
-    border: 1px solid #2980b9;
+    background-color: var(--graphite);
+    color: var(--punkpink);
+  }
+
+  .input:focus {
+    background-color: #282c34;
+    color: antiquewhite;
+    outline: none;
+    transition: color 2.0s ease, background-color 2.0 ease;
+  }
+  .dropdown::-webkit-scrollbar {
+    width: 8px;
+  }
+  .dropdown::-webkit-scrollbar-track {
+    background: #1f1e27; 
+    border-radius: 0px;
+  }
+  
+  .dropdown::-webkit-scrollbar-thumb {
+    background: #ff005d;
+    border-radius: 2px;
+    transition: background-color 3.0s ease;
+  }
+  
+  .dropdown::-webkit-scrollbar-thumb:hover {
+    background: antiquewhite; /* Lighter on hover */
+    transition: background-color 3.0s ease;
   }

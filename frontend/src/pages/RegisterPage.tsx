@@ -9,6 +9,12 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  //Focus state tracker
+  const [isFocused, setIsFocused] = useState(false);
+  //hover tracker
+  const [isHovered, setIsHovered] = useState(false);
+
+
   const handleRegister = async () => {
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -45,42 +51,71 @@ const RegisterPage: React.FC = () => {
         <h1 style={styles.title}>Create Your Account</h1>
 
         {error && <p style={styles.errorText}>{error}</p>}
-
+{/* Name input box */}
         <input 
           type="text" 
           placeholder="Name" 
           value={name} 
           onChange={(e) => setName(e.target.value)} 
-          style={styles.input} 
-        />
+          onFocus={() => setIsFocused(true)}  // Set focus state to true
+          onBlur={() => setIsFocused(false)}   // Set focus state to false
+          style={{
+            ...styles.input,
+            backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+            color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+          }}
 
+        />
+{/* email input box */}
         <input 
           type="email" 
           placeholder="Email" 
           value={email} 
           onChange={(e) => setEmail(e.target.value)} 
-          style={styles.input} 
-        />
+          onFocus={() => setIsFocused(true)}  // Set focus state to true
+          onBlur={() => setIsFocused(false)}   // Set focus state to false
+          style={{
+            ...styles.input,
+            backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+            color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+          }}
 
+        />
+{/* password input box */}
         <input 
           type="password" 
           placeholder="Password" 
           value={password} 
           onChange={(e) => setPassword(e.target.value)} 
-          style={styles.input} 
-        />
+          onFocus={() => setIsFocused(true)}  // Set focus state to true
+          onBlur={() => setIsFocused(false)}   // Set focus state to false
+          style={{
+            ...styles.input,
+            backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+            color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+          }}
 
+        />
+{/* confirm password input box */}
         <input 
           type="password" 
           placeholder="Confirm Password" 
           value={confirmPassword} 
           onChange={(e) => setConfirmPassword(e.target.value)} 
-          style={styles.input} 
-        />
+          onFocus={() => setIsFocused(true)}  // Set focus state to true
+          onBlur={() => setIsFocused(false)}   // Set focus state to false
+          style={{
+            ...styles.input,
+            backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+            color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+          }}
 
+        />
+{/* register button */}
         <button onClick={handleRegister} style={styles.button}>Register</button>
 
         <p style={styles.backText}>Already have an account?</p>
+        {/* back button */}
         <button onClick={() => navigate("/login")} style={styles.backButton}>
           Back to Login
         </button>
@@ -92,7 +127,7 @@ const RegisterPage: React.FC = () => {
 // Styles
 const styles: Record<string, CSSProperties> = {
   container: {
-    backgroundColor: "#0D1B2A",
+    backgroundColor: "#1f1e27",
     height: "100vh",
     display: "flex",
     justifyContent: "center",
@@ -100,8 +135,10 @@ const styles: Record<string, CSSProperties> = {
     color: "#E0E1DD",
   },
   box: {
-    backgroundColor: "#1B263B",
+    backgroundColor: "#282c34",
+    color:"#ff005d",
     padding: "30px",
+    border: "2px solid",
     borderRadius: "8px",
     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
     textAlign: "center",
@@ -111,9 +148,9 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
   },
   title: {
-    fontSize: "24px",
-    color: "#E0E1DD",
-    marginBottom: "15px",
+    fontSize: "26px",
+    color: "#ff005d",
+    marginBottom: "10px",
   },
   errorText: {
     color: "red",
@@ -125,9 +162,8 @@ const styles: Record<string, CSSProperties> = {
     padding: "10px",
     margin: "8px 0",
     borderRadius: "4px",
-    border: "none",
-    backgroundColor: "#415A77",
-    color: "#E0E1DD",
+    border: "2px solid",
+    transition: "background-color 0.3s ease",
     fontSize: "16px",
     textAlign: "center",
   },
@@ -135,29 +171,31 @@ const styles: Record<string, CSSProperties> = {
     width: "95%",
     padding: "10px",
     marginTop: "10px",
-    backgroundColor: "#778DA9",
-    color: "#0D1B2A",
-    border: "none",
+    backgroundColor: "#1f1e27",
+    color: "#ff005d",
+    border: "2px solid",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "16px",
+    transition: "background-color 2.0s ease, color 2.0s ease",
   },
   backText: {
     marginTop: "15px",
     fontSize: "14px",
-    color: "#E0E1DD",
+    color: "#f9508e",
   },
   backButton: {
     marginTop: "5px",
     padding: "8px 15px",
-    backgroundColor: "#415A77",
-    color: "#E0E1DD",
-    border: "none",
+    backgroundColor: "#1f1e27",
+    color: "#ff005d",
+    border: "2px solid",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "14px",
     width: "95%",
   },
+
 };
 
 export default RegisterPage;

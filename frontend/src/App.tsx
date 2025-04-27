@@ -42,22 +42,18 @@ const App: React.FC = () => {
           path="/register"
           element={isAuthenticated ? <Navigate to="/" /> : <RegisterPage />}
         />
-
         <Route
           path="/"
           element={isAuthenticated ? <Projects setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />}
         />
-
         <Route
           path="/projects"
           element={isAuthenticated ? <Projects setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />}
         />
-
         <Route
           path="/graph/:projectId"
           element={isAuthenticated ? <GraphPage /> : <Navigate to="/login" />}
         />
-
         <Route
           path="/graph/active"
           element={

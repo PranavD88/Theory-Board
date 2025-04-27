@@ -11,6 +11,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const [error, setError] = useState<string | null>(null); // Track error message
   const navigate = useNavigate();
 
+  //Focus state tracker
+  const [isFocused, setIsFocused] = useState(false);
+  //hover tracker
+  const [isHovered, setIsHovered] = useState(false);
+  //tracks if login has failed
+  const [isFailedLogin, setIsFailedLogin] = useState(false);
+
+
   const handleLogin = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
@@ -31,8 +39,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       console.error("Login error:", error);
       if (error instanceof Error) {
         setError(error.message); // Set error message
+        setIsFailedLogin(true)//activates register button highlight
       } else {
         setError("An unexpected error occurred.");
+        setIsFailedLogin(false)//deactivates register button highlight
       }
     }
   };
@@ -49,31 +59,67 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
             <span>{error}</span>
           </div>
         )}
-
-        <div style={styles.inputContainer}>
+        
+        <div style={styles.inputContainer}> 
+          {/* Email Input box */}
           <input 
             type="email" 
             placeholder="Email" 
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
-            style={styles.input} 
+            onFocus={() => setIsFocused(true)}  // Set focus state to true
+            onBlur={() => setIsFocused(false)}   // Set focus state to false
+            style={{
+              ...styles.input,
+              backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+              color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+            }}
+ 
           />
         </div>
 
         <div style={styles.inputContainer}>
+          {/* Password Input box */}
           <input 
             type="password" 
             placeholder="Password" 
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
-            style={styles.input} 
+            onFocus={() => setIsFocused(true)}  // Set focus state to true
+            onBlur={() => setIsFocused(false)}   // Set focus state to false
+            style={{
+              ...styles.input,
+              backgroundColor: isFocused ? "#282c34" :"#1f1e27" ,  // Conditional background color
+              color: isFocused ? "antiquewhite" : "#ff005d",//conditional text color
+            }}
+ 
           />
         </div>
+            {/* Login Button */}
+        <button onClick={handleLogin}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{
+            ...styles.button,
+            backgroundColor: isHovered ? "#ff005d" : "#1f1e27",// Conditional background color
+            color: isHovered ? "#1f1e27" : "#ff005d",//conditional text color
+          }}
+        >Login</button>
 
-        <button onClick={handleLogin} style={styles.button}>Login</button>
+        <p style={{
+          ...styles.registerText,
+          color: isFailedLogin ? "#ff005d" : "#f9508e",//conditional text color
+          fontSize:isFailedLogin ? "15px" : "10px",
+        }}>Don't have an account?</p>
+            {/* Register Button */}
+        <button onClick={() => navigate("/register")}
+           style={{
+            ...styles.button,
+            backgroundColor: isFailedLogin ? "#ff005d" : "#1f1e27",// Conditional background color
+            color: isFailedLogin ? "#1f1e27" : "#ff005d",//conditional text color
+            padding: isFailedLogin ? "15px" : "10px",//conditional button scale
+          }}>
 
-        <p style={styles.registerText}>Don't have an account?</p>
-        <button onClick={() => navigate("/register")} style={styles.registerButton}>
           Register
         </button>
       </div>
@@ -83,7 +129,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
 const styles: Record<string, CSSProperties> = {
   container: {
-    backgroundColor: "#0D1B2A",
+    backgroundColor: "#1f1e27",
     height: "100vh",
     display: "flex",
     justifyContent: "center",
@@ -91,8 +137,10 @@ const styles: Record<string, CSSProperties> = {
     color: "#E0E1DD",
   },
   box: {
-    backgroundColor: "#1B263B",
+    backgroundColor: "#282c34",
+    color:"#ff005d",
     padding: "30px",
+    border: "2px solid",
     borderRadius: "8px",
     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
     textAlign: "center",
@@ -103,20 +151,21 @@ const styles: Record<string, CSSProperties> = {
   },
   title: {
     fontSize: "26px",
-    color: "#E0E1DD",
+    color: "#ff005d",
     marginBottom: "10px",
   },
   subtitle: {
     fontSize: "14px",
-    color: "#778DA9",
+    color: "#f9508e",
     marginBottom: "20px",
+
   },
   errorBox: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFCCCC",
-    color: "#CC0000",
+    backgroundColor: "#ff005d",
+    color: "#1f1e27",
     padding: "10px",
     borderRadius: "4px",
     marginBottom: "15px",
@@ -136,9 +185,8 @@ const styles: Record<string, CSSProperties> = {
     padding: "10px",
     margin: "8px 0",
     borderRadius: "4px",
-    border: "none",
-    backgroundColor: "#415A77",
-    color: "#E0E1DD",
+    border: "2px solid",
+    transition: "background-color 0.3s ease",
     fontSize: "16px",
     textAlign: "center",
   },
@@ -148,15 +196,17 @@ const styles: Record<string, CSSProperties> = {
     marginTop: "10px",
     backgroundColor: "#778DA9",
     color: "#0D1B2A",
-    border: "none",
+    border: "2px solid",
     borderRadius: "4px",
     cursor: "pointer",
     fontSize: "16px",
+    transition: "background-color 2.0s ease, color 2.0s ease, padding 0.3s ease",
   },
   registerText: {
     marginTop: "15px",
     fontSize: "14px",
-    color: "#E0E1DD",
+    color: "#f9508e",
+    transition: "font-size 2.0s ease, color 2.0s ease",
   },
   registerButton: {
     marginTop: "5px",

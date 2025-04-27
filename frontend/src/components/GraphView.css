@@ -1,9 +1,16 @@
+/* Css for node rendering section */
+
+:root {
+  --graphWidth: 100vh;
+  --graphHeight: 75vh;
+}
+/* graph background area*/
 .graph-container {
-  width: 92vw;
-  height: 75vh;
+  width: var(--graphWidth);
+  height: var(--graphHeight);
   background-color: #131821;
   position: relative;
-  top: 4vh;
+  top: 2vh;
   left: 0;
   display: flex;
   justify-content: center;
@@ -14,9 +21,10 @@
   pointer-events: auto;
 }
 
+/* graph for ground area */
 .cy-container {
-  width: 92vw;
-  height: 75vh;
+  width: var(--graphWidth);
+  height: var(--graphHeight);
   position: absolute;
   top: 0;
   left: 0;

@@ -52,17 +52,34 @@ const NoteWindow = ({
         x: note.x ?? 100,
         y: note.y ?? 100,
         width: 400,
-        height: 705,
+        height: 575,
       }}
       minWidth={300}
-      minHeight={200}
+      minHeight={100}
+      maxHeight={575}
       className="note-preview"
       dragHandleClassName="drag-handle"
-      style={{ zIndex: note.z }}
+      style={{ zIndex: 2000, }}
     >
-      <div className="drag-handle">⠿ Drag</div>
+      <div className="drag-handle">⠿ Click Here To Drag</div>
       <h3 className="note-title">Edit Note</h3>
-
+      <div className="edit-note">
+        <button onClick={() => onClose(note.id)} className="close-button">
+          Close Editor
+        </button>
+        <button onClick={() => onSave(note)} className="save-button">
+          Save
+        </button>
+        <button onClick={() => onDelete(note.id)} className="delete-button">
+          Delete
+        </button>
+        <button onClick={() => onExportPDF(note.id)} className="export-button pdf-export">
+          Export as PDF
+        </button>
+        <button onClick={() => onExportDOCX(note.id)} className="export-button docx-export">
+          Export as DOCX
+        </button>
+      </div>
       <div className="full-width">
         <input
           type="text"
@@ -117,24 +134,6 @@ const NoteWindow = ({
             Add Tag
           </button>
         </div>
-      </div>
-
-      <div className="actions-row">
-        <button onClick={() => onSave(note)} className="save-button">
-          Save
-        </button>
-        <button onClick={() => onDelete(note.id)} className="delete-button">
-          Delete
-        </button>
-        <button onClick={() => onExportPDF(note.id)} className="export-button pdf-export">
-          Export as PDF
-        </button>
-        <button onClick={() => onExportDOCX(note.id)} className="export-button docx-export">
-          Export as DOCX
-        </button>
-        <button onClick={() => onClose(note.id)} className="close-button">
-          Close
-        </button>
       </div>
     </Rnd>
   );
