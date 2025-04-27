@@ -48,7 +48,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       console.error("Error fetching notes:", error);
       setNotes([]);
     }
-  }, [setIsAuthenticated]);
+  }, [setIsAuthenticated, projectId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -125,22 +125,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       alert("Error linking notes");
     }
   };
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error("Logout failed");
-      setIsAuthenticated(false);
-      clearGraph();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
 
   const handleImportPDF = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -264,10 +248,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
           </select>
           <button onClick={handleLinkNotes} className="create-button">
             Link
-          </button>
-  
-          <button onClick={handleLogout} className="logout-button">
-            Logout
           </button>
         </div>
       )}

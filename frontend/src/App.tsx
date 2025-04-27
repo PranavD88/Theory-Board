@@ -45,12 +45,12 @@ const App: React.FC = () => {
 
         <Route
           path="/"
-          element={isAuthenticated ? <Projects /> : <Navigate to="/login" />}
+          element={isAuthenticated ? <Projects setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />}
         />
 
         <Route
           path="/projects"
-          element={isAuthenticated ? <Projects /> : <Navigate to="/login" />}
+          element={isAuthenticated ? <Projects setIsAuthenticated={setIsAuthenticated} /> : <Navigate to="/login" />}
         />
 
         <Route
