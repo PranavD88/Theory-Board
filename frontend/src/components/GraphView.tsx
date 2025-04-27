@@ -155,6 +155,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
     }
   }, []);
 
+  // loads node tree
   const initializeCytoscape = useCallback(() => {
     if (!graphContainerRef.current) return;
     if (cyRef.current) {
@@ -168,6 +169,7 @@ const GraphView = forwardRef<GraphViewHandles>((props, ref) => {
       elements: [],
       style: [
         {
+          // Node tree style
           selector: "node",
           style: {
             label: "data(label)",

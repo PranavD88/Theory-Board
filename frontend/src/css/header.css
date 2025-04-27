@@ -8,7 +8,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 5vh;
+    min-height: 1vh;
     z-index: 12;
 }
 p{
@@ -17,6 +17,7 @@ p{
 
 }
 hr {
+  /* header line */
     display:block;
     margin: 0px auto;
     border: none;

@@ -38,7 +38,17 @@
     transform: rotate(360deg);
   }
 }
-
+/* buffer to keep main page below header */
+.buffer {
+  display:block;
+    margin: 0px auto;
+    border: none;
+    height: 2px;
+    /* background-color: #ff005d; */
+    margin: 20px 0;
+    width: 100%;
+    padding-bottom: 10vh;
+}
 /* Project Management menu */
 .Menu-button-list {
   display: flex;
@@ -71,6 +81,7 @@ html {
 .Graph-area {
   display: flex;
   justify-content: center;
+  height: 90%;
 }
 
 .ProseMirror,

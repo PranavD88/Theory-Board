@@ -25,6 +25,10 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
   const [tags, setTags] = useState<{ id: string; text: string }[]>([]);
 
+  //Focus state trackers
+  const [isFocused, setIsFocused] = useState(false);
+
+
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
     try {
@@ -175,7 +179,8 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   
     const formData = new FormData();
     formData.append("file", file);
-  
+     
+    // calls for alert system
     try {
       const response = await fetch("http://localhost:5000/api/notes/import/docx", {
         method: "POST",
@@ -199,6 +204,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     }
   };
   
+  // menu button function and styles
   return (
     <div className="menu-container">
       <button onClick={() => setIsOpen(!isOpen)} className="menu-button">

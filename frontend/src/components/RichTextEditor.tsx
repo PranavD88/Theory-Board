@@ -56,7 +56,8 @@ const RichTextEditor: React.FC<{
             min-height: 100%;
             height: 100%;
             font-size: 14px;
-            color: #000;
+            color: #ff005d;
+            background-color: #1f1e27;
             box-sizing: border-box;
             white-space: pre-wrap !important;
             overflow-y: auto;
@@ -68,6 +69,11 @@ const RichTextEditor: React.FC<{
 
           .ProseMirror p {
             margin: 0;
+          }
+          .ProseMirror:focus {
+            color: antiquewhite;
+            background-color: #282c34;
+            transition: color 2.0s ease, background-color 2.0 ease;
           }
         `}
       </style>

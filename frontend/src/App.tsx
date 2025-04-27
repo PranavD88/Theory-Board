@@ -52,8 +52,8 @@ const App: React.FC = () => {
             // if authenticated login, loads the app view for the account
             isAuthenticated ? (
               <div 
-              style={{ width: "100vw", height: "100vh", position: "relative" }}
-              >
+              style={{ width: "100vw", height: "70vh", position: "relative" }}
+              > <div className="buffer"></div>
                 {/* Project Menu Area */}
                 <div className="Menu-button-list">
                   <button>New Project</button>
