@@ -25,9 +25,9 @@ const GraphPage: React.FC = () => {
           top: "20px",
           left: "20px",
           zIndex: 9999,
-          backgroundColor: "#ff005d",
-          color: "white",
-          border: "none",
+          backgroundColor: "#1f1e27",
+          color: "#ff005d",
+          border: "solid 2px",
           padding: "0.5rem 1rem",
           borderRadius: "8px",
           cursor: "pointer"

@@ -57,6 +57,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
     }
   };
 
+  //creates new project
   const handleCreateProject = async () => {
     if (!projName.trim()) return;
 
@@ -125,11 +126,11 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         <button
           onClick={toggleInput}
           style={{
-            backgroundColor: "#ff005d",
-            color: "white",
-            border: "none",
+            backgroundColor: "#1f1e27",
+            color: "#ff005d",
             padding: "0.5rem 1rem",
-            borderRadius: "8px",
+            borderRadius: "4px",
+            border: "solid 2px",
           }}
         >
           New Project
@@ -138,27 +139,30 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         <button
           onClick={handleLogout}
           style={{
-            backgroundColor: "#ff005d",
-            color: "white",
-            border: "none",
+            backgroundColor: "#1f1e27",
+            color: "#ff005d",
             padding: "0.5rem 1rem",
-            borderRadius: "8px",
+            borderRadius: "4px",
+            border: "solid 2px",
           }}
         >
           Logout
         </button>
   
+  {/* search box style */}
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search Projects"
           style={{
-            padding: "0.5rem",
-            width: "300px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            marginLeft: "1rem",
+          padding: "0.5rem",
+          width: "300px",
+          borderRadius: "4px",
+          border: "2px solid",
+          marginLeft: "1rem",
+          color: "#ff005d",
+          backgroundColor: "#1f1e27",
           }}
         />
       </div>
@@ -184,11 +188,11 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
             onClick={handleCreateProject}
             className="InputAccept"
             style={{
-              backgroundColor: "#ff005d",
-              color: "white",
+              backgroundColor: "#1f1e27",
+              color: "#ff005d",
               padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
+              borderRadius: "4px",
+              border: "solid 2px",
             }}
           >
             Create Project
@@ -196,7 +200,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         </div>
       )}
   
-      <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Your Projects</h1>
+      <h1 style={{ fontSize: "2rem", marginBottom: "1rem",color: "#ff005d", }}>Your Projects</h1>
       <h2 style={{ color: "#ff005d", marginBottom: "1rem" }}>
       🔥 Current Streak: {localStorage.getItem('streakCount') || 0} days
       </h2>
@@ -208,11 +212,14 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
           gap: "1.5rem",
         }}
       >
+        {/* Project List Item setup */}
         {filteredProjects.map((proj) => (
           <div
             key={proj.id}
             style={{
-              backgroundColor: "#3a3f47",
+              backgroundColor: "#1f1e27",
+              color: "#ff005d",
+              border:"solid 2px",
               borderRadius: "12px",
               padding: "1rem",
               position: "relative",
@@ -227,22 +234,18 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
             >
               {proj.name}
             </h2>
-            <p style={{ color: "#bbb", fontSize: "0.9rem" }}>
+            <p style={{ color: "#ff005d", fontSize: "0.9rem" }}>
               Created: {new Date(proj.created_at).toLocaleDateString()}
             </p>
   
             <button
               onClick={() => handleDeleteProject(proj.id)}
               style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                backgroundColor: "#ff005d",
-                color: "white",
-                border: "none",
-                padding: "0.3rem 0.6rem",
-                borderRadius: "8px",
-                fontSize: "0.8rem",
+                backgroundColor: "#1f1e27",
+                color: "#ff005d",
+                padding: "0.5rem 1rem",
+                borderRadius: "4px",
+                border: "solid 2px",
               }}
             >
               Delete

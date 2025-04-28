@@ -34,6 +34,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   const [searchTag, setSearchTag] = useState("");
   const [searchContent, setSearchContent] = useState("");
 
+  //Focus state tracker
+  const [isFocused, setIsFocused] = useState(false);
+
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
     try {
@@ -236,7 +239,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   return (
     <div className="menu-container">
       <button onClick={() => setIsOpen(!isOpen)} className="menu-button">
-        <Menu size={32} color="white" />
+        <Menu size={32} color="#ff005d" />
       </button>
   
       {isOpen && (

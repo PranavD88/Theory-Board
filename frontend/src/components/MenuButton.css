@@ -10,7 +10,10 @@
     border: none;
     cursor: pointer;
   }
-  
+  .text-input:focus {
+    outline: none;
+    border-color: #ff005d;
+  }
   .dropdown {
     position: absolute;
     top: 40px;
@@ -44,6 +47,7 @@
     border: none;
     background-color: var(--graphite);
     color: var(--punkpink);
+    transition: color 2.0s ease, background-color 2.0 ease;
   }
 
   .textarea,
@@ -105,7 +109,7 @@
   .input:focus {
     background-color: #282c34;
     color: antiquewhite;
-    outline: none;
+    border: 4px #ff005d;
     transition: color 2.0s ease, background-color 2.0 ease;
   }
   .dropdown::-webkit-scrollbar {
