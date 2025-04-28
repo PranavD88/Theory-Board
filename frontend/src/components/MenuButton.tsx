@@ -9,6 +9,7 @@ interface MenuButtonProps {
   addNode: (newNote: any) => void;
   addEdge: (fromNoteId: number, toNoteId: number) => void;
   clearGraph: () => void;
+  projectId?: string;
 }
 
 const MenuButton: React.FC<MenuButtonProps> = ({
@@ -16,6 +17,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   addNode,
   addEdge,
   clearGraph,
+  projectId,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -32,7 +34,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/notes/all", {
+      const response = await fetch(`http://localhost:5000/api/notes?projectId=${projectId}`, {
         method: "GET",
         credentials: "include",
       });
@@ -50,7 +52,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       console.error("Error fetching notes:", error);
       setNotes([]);
     }
-  }, [setIsAuthenticated]);
+  }, [setIsAuthenticated, projectId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -63,8 +65,8 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       alert("Title is required");
       return;
     }
-
-    const response = await fetch("http://localhost:5000/api/notes/create", {
+  
+    const response = await fetch("http://localhost:5000/api/notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -72,15 +74,16 @@ const MenuButton: React.FC<MenuButtonProps> = ({
         title,
         content,
         tags: tags.map(tag => tag.text),
+        projectId,
       }),
     });
-
+  
     if (response.status === 401) {
       console.error("Unauthorized access - Logging out");
       setIsAuthenticated(false);
       return;
     }
-
+  
     if (response.ok) {
       const newNote = await response.json();
       alert("Note created!");
@@ -126,22 +129,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       alert("Error linking notes");
     }
   };
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) throw new Error("Logout failed");
-      setIsAuthenticated(false);
-      clearGraph();
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
 
   const handleImportPDF = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -267,10 +254,6 @@ const MenuButton: React.FC<MenuButtonProps> = ({
           </select>
           <button onClick={handleLinkNotes} className="create-button">
             Link
-          </button>
-  
-          <button onClick={handleLogout} className="logout-button">
-            Logout
           </button>
         </div>
       )}
