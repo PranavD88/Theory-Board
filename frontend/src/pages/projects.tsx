@@ -10,6 +10,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
   const [projName, setProjName] = useState<string>("");
   const [showInput, setShowInput] = useState<boolean>(false);
   const [projects, setProjects] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +34,10 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
       navigate("/login");
     }
   };
+
+  const filteredProjects = projects.filter((proj) =>
+    proj.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const fetchProjects = async () => {
     try {
@@ -113,7 +118,8 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
   return (
     <div style={{ backgroundColor: "#282c34", minHeight: "100vh", padding: "2rem", color: "white" }}>
       <h1 style={{color: "red"}}> HELLO TEST </h1>
-      <div className="Menu-button-list" style={{ marginBottom: "2rem", display: "flex", gap: "1rem" }}>
+
+      <div className="Menu-button-list" style={{ marginBottom: "2rem", display: "flex", gap: "1rem", alignItems: "center" }}>
         <button
           onClick={toggleInput}
           style={{
@@ -139,6 +145,20 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         >
           Logout
         </button>
+
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search Projects"
+          style={{
+            padding: "0.5rem",
+            width: "300px",
+            borderRadius: "8px",
+            border: "1px solid #ccc",
+            marginLeft: "1rem",
+          }}
+        />
       </div>
 
       {showInput && (
@@ -183,7 +203,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
           gap: "1.5rem",
         }}
       >
-        {projects.map((proj) => (
+        {filteredProjects.map((proj) => (
           <div
             key={proj.id}
             style={{
@@ -227,7 +247,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
       </div>
     </div>
   );
-  
+
 };
 
 export default Projects;
