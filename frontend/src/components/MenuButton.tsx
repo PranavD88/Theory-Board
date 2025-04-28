@@ -80,6 +80,27 @@ const MenuButton: React.FC<MenuButtonProps> = ({
         projectId,
       }),
     });
+
+    const updateStreak = () => {
+      const today = new Date().toDateString();
+      const lastEdit = localStorage.getItem('lastEditDate');
+      let streak = parseInt(localStorage.getItem('streakCount') || '0');
+    
+      if (lastEdit === today) {
+        return;
+      }
+    
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+    
+      if (lastEdit === yesterday) {
+        streak += 1;
+      } else {
+        streak = 1;
+      }
+    
+      localStorage.setItem('lastEditDate', today);
+      localStorage.setItem('streakCount', streak.toString());
+    };
   
     if (response.status === 401) {
       console.error("Unauthorized access - Logging out");
@@ -95,6 +116,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       setTags([]);
       addNode(newNote);
       fetchNotes();
+      updateStreak();
     } else {
       alert("Error creating note");
     }

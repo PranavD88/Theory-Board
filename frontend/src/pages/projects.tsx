@@ -117,8 +117,10 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
 
   return (
     <div style={{ backgroundColor: "#282c34", minHeight: "100vh", padding: "2rem", color: "white" }}>
-      <h1 style={{color: "red"}}> HELLO TEST </h1>
-
+      <h2 style={{ color: "#ff005d", marginBottom: "1rem" }}>
+        🔥 Current Streak: {localStorage.getItem('streakCount') || 0} days
+      </h2>
+  
       <div className="Menu-button-list" style={{ marginBottom: "2rem", display: "flex", gap: "1rem", alignItems: "center" }}>
         <button
           onClick={toggleInput}
@@ -132,7 +134,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         >
           New Project
         </button>
-
+  
         <button
           onClick={handleLogout}
           style={{
@@ -145,7 +147,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
         >
           Logout
         </button>
-
+  
         <input
           type="text"
           value={searchTerm}
@@ -160,7 +162,8 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
           }}
         />
       </div>
-
+      
+  
       {showInput && (
         <div style={{ marginBottom: "2rem" }}>
           <input
@@ -192,10 +195,12 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
           </button>
         </div>
       )}
-
+  
       <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Your Projects</h1>
-      <p style={{ marginBottom: "2rem" }}>Click on a project to open its graph.</p>
-
+      <h2 style={{ color: "#ff005d", marginBottom: "1rem" }}>
+      🔥 Current Streak: {localStorage.getItem('streakCount') || 0} days
+      </h2>
+  
       <div
         style={{
           display: "grid",
@@ -225,7 +230,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
             <p style={{ color: "#bbb", fontSize: "0.9rem" }}>
               Created: {new Date(proj.created_at).toLocaleDateString()}
             </p>
-
+  
             <button
               onClick={() => handleDeleteProject(proj.id)}
               style={{
@@ -247,6 +252,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
       </div>
     </div>
   );
+  
 
 };
 
