@@ -71,6 +71,8 @@ const App: React.FC = () => {
                     addNode={(newNote) => graphRef.current?.addNode(newNote)}
                     addEdge={(fromNoteId, toNoteId) => graphRef.current?.addEdge(fromNoteId, toNoteId)}
                     clearGraph={() => graphRef.current?.clearGraph()}
+                    searchNodes={(query) => graphRef.current?.searchNodes(query)}
+                    getCyInstance={() => graphRef.current?.getCyInstance()}
                   />
                 </div>
               </div>

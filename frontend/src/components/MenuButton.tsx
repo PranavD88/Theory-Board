@@ -10,6 +10,8 @@ interface MenuButtonProps {
   addEdge: (fromNoteId: number, toNoteId: number) => void;
   clearGraph: () => void;
   projectId?: string;
+  searchNodes: (query: { title?: string; tag?: string; content?: string }) => void;
+  getCyInstance: () => cytoscape.Core | undefined;
 }
 
 const MenuButton: React.FC<MenuButtonProps> = ({
@@ -18,6 +20,8 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   addEdge,
   clearGraph,
   projectId,
+  searchNodes,
+  getCyInstance,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -26,10 +30,9 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   const [selectedNote2, setSelectedNote2] = useState("");
   const [notes, setNotes] = useState<{ id: number; title: string }[]>([]);
   const [tags, setTags] = useState<{ id: string; text: string }[]>([]);
-
-  //Focus state trackers
-  const [isFocused, setIsFocused] = useState(false);
-
+  const [searchTitle, setSearchTitle] = useState("");
+  const [searchTag, setSearchTag] = useState("");
+  const [searchContent, setSearchContent] = useState("");
 
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
@@ -159,6 +162,22 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       alert("Error importing PDF");
     }
   };
+  
+  const handleTitleSearch = () => {
+    searchNodes({ title: searchTitle });
+  };
+  
+  const handleTagSearch = () => {
+    searchNodes({ tag: searchTag });
+  };
+  
+  const handleContentSearch = () => {
+    searchNodes({ content: searchContent });
+  };
+  
+  const clearHighlights = () => {
+    searchNodes({});
+  };
 
   const handleImportDOCX = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -255,10 +274,51 @@ const MenuButton: React.FC<MenuButtonProps> = ({
           <button onClick={handleLinkNotes} className="create-button">
             Link
           </button>
+  
+          <h3 className="heading">Search Notes</h3>
+  
+          <input
+            type="text"
+            placeholder="Search by Title"
+            value={searchTitle}
+            onChange={(e) => setSearchTitle(e.target.value)}
+            className="input"
+          />
+          <button onClick={handleTitleSearch} className="create-button">
+            Search by Title
+          </button>
+  
+          <input
+            type="text"
+            placeholder="Search by Tag"
+            value={searchTag}
+            onChange={(e) => setSearchTag(e.target.value)}
+            className="input"
+          />
+          <button onClick={handleTagSearch} className="create-button">
+            Search by Tag
+          </button>
+  
+          <input
+            type="text"
+            placeholder="Search by Content"
+            value={searchContent}
+            onChange={(e) => setSearchContent(e.target.value)}
+            className="input"
+          />
+          <button onClick={handleContentSearch} className="create-button">
+            Search by Content
+          </button>
+  
+          <button onClick={clearHighlights} className="create-button">
+            Clear Highlights
+          </button>
         </div>
       )}
     </div>
   );
+
+  
 };  
 
 export default MenuButton;

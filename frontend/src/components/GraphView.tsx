@@ -20,6 +20,8 @@ export interface GraphViewHandles {
   removeNode: (noteId: number) => void;
   removeEdge: (fromNoteId: number, toNoteId: number) => void;
   clearGraph: () => void;
+  getCyInstance: () => cytoscape.Core | undefined;
+searchNodes: (query: { title?: string; tag?: string; content?: string }) => void;
 }
 
 type NoteType = {
@@ -45,7 +47,6 @@ type SelectedEdge = {
 const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, ref) => {
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
-
   const [openNotes, setOpenNotes] = useState<WindowedNote[]>([]);
   const [zCounter, setZCounter] = useState(1000);
   const [selectedEdge, setSelectedEdge] = useState<SelectedEdge>(null);
@@ -189,7 +190,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
       cyRef.current.destroy();
       cyRef.current = null;
     }
-
+  
     const cy = cytoscape({
       container: graphContainerRef.current,
       layout: { name: "preset" },
@@ -211,6 +212,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
           },
         },
         {
+          // Edge style
           selector: "edge",
           style: {
             width: 2,
@@ -218,18 +220,51 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
             "curve-style": "bezier",
           },
         },
+        {
+          // Highlight style for Title search
+          selector: "node.highlight-title",
+          style: {
+            "background-color": "#ff3366",
+            "border-color": "#ff3366",
+            "border-width": "3px",
+            "background-opacity": 1,
+            "opacity": 1,
+          },
+        },
+        {
+          // Highlight style for Tag search
+          selector: "node.highlight-tag",
+          style: {
+            "background-color": "#ff6699",
+            "border-color": "#ff6699",
+            "border-width": "3px",
+            "background-opacity": 1,
+            "opacity": 1,
+          },
+        },
+        {
+          // Highlight style for Content search
+          selector: "node.highlight-content",
+          style: {
+            "background-color": "#ff99bb",
+            "border-color": "#ff99bb",
+            "border-width": "3px",
+            "background-opacity": 1,
+            "opacity": 1,
+          },
+        },
       ],
       zoom: 1,
       pan: { x: 0, y: 0 },
     });
-
+  
     cyRef.current = cy;
-    
+  
     cy.on("dragfree", "node", async (evt) => {
       const node = evt.target;
       const id = node.id().startsWith("n") ? node.id().slice(1) : node.id();
       const pos = node.position();
-    
+  
       try {
         await fetch(`http://localhost:5000/api/notes/position/${id}`, {
           method: "PUT",
@@ -241,25 +276,25 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
         console.error("Error saving node position:", err);
       }
     });
-
+  
     cy.on("tap", "node", async (evt) => {
       setSelectedEdge(null);
-    
+  
       const rawId = evt.target.id();
       const id = Number(rawId.replace(/^n/, ""));
-    
+  
       try {
         const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch note");
         const noteData: NoteType = await res.json();
-    
+  
         setZCounter((zc) => {
           const newZ = zc + 1;
           setOpenNotes((prev) => {
             const idx = prev.findIndex((n) => n.id === noteData.id);
-    
+  
             if (idx !== -1) {
               const windows = [...prev];
               const [existing] = windows.splice(idx, 1);
@@ -274,7 +309,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
         console.error("Node-tap error:", err);
       }
     });
-
+  
     cy.on("tap", "edge", (evt) => {
       const d = evt.target.data();
       const src = cy.getElementById(d.source).data("label");
@@ -301,14 +336,23 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
         const id = `n${note.id}`;
         if (!existing.has(id)) {
           cy.add({
-            data: { id, label: note.title },
+            data: {
+              id,
+              label: note.title,
+              tags: note.tags || [],
+              content: note.content || "",
+            },
             position: {
               x: typeof note.x === "number" ? note.x : i * 120,
               y: typeof note.y === "number" ? note.y : i * 80,
             },
           });
         } else {
-          cy.getElementById(id).data("label", note.title);
+          cy.getElementById(id).data({
+            label: note.title,
+            tags: note.tags || [],
+            content: note.content || "",
+          });
         }
       });
   
@@ -397,7 +441,12 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
   useImperativeHandle(ref, () => ({
     addNode: (newNote: any) => {
       cyRef.current?.add({
-        data: { id: `n${newNote.id}`, label: newNote.title },
+        data: {
+          id: `n${newNote.id}`,
+          label: newNote.title,
+          tags: newNote.tags || [],
+          content: newNote.content || "",
+        },
         position: { x: Math.random() * 500, y: Math.random() * 500 },
       });
     },
@@ -420,7 +469,36 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
     clearGraph: () => {
       cyRef.current?.elements().remove();
     },
+    getCyInstance: () => {
+      return cyRef.current ?? undefined;
+    },
+    searchNodes: (query) => {
+      if (!cyRef.current) return;
+    
+      const { title = "", tag = "", content = "" } = query;
+    
+      cyRef.current.nodes().removeClass("highlight-title highlight-tag highlight-content");
+    
+      const titleTerm = title.toLowerCase();
+      const tagTerm = tag.toLowerCase();
+      const contentTerm = content.toLowerCase();
+    
+      cyRef.current.nodes().forEach((node: cytoscape.NodeSingular) => {
+        const label = node.data("label")?.toLowerCase() || "";
+        const tags = (node.data("tags") || []).map((t: string) => t.toLowerCase());
+        const noteContent = node.data("content")?.toLowerCase() || "";
+    
+        if (titleTerm && label.includes(titleTerm)) {
+          node.addClass("highlight-title");
+        } else if (tagTerm && tags.some((t:string) => t.includes(tagTerm))) {
+          node.addClass("highlight-tag");
+        } else if (contentTerm && noteContent.includes(contentTerm)) {
+          node.addClass("highlight-content");
+        }
+      });
+    }
   }));
+  
 
   return (
     <div className="graph-container">

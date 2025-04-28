@@ -8,6 +8,14 @@ const GraphPage: React.FC = () => {
   const navigate = useNavigate();
   const graphRef = useRef<GraphViewHandles>(null);
 
+  const handleSearchNodes = (query: { title?: string; tag?: string; content?: string }) => {
+    graphRef.current?.searchNodes(query);
+  };
+
+  const handleGetCyInstance = () => {
+    return graphRef.current?.getCyInstance();
+  };
+
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
       <button
@@ -34,6 +42,8 @@ const GraphPage: React.FC = () => {
         addEdge={(from, to) => graphRef.current?.addEdge(from, to)}
         clearGraph={() => graphRef.current?.clearGraph()}
         projectId={projectId}
+        searchNodes={handleSearchNodes}
+        getCyInstance={handleGetCyInstance}
       />
 
       <div className="Graph-area">
