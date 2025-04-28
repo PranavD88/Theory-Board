@@ -1,8 +1,8 @@
 /* Css for node rendering section */
 
 :root {
-  --graphWidth: 100vh;
-  --graphHeight: 75vh;
+  --graphWidth: 170vh;
+  --graphHeight: 90vh;
 }
 /* graph background area*/
 .graph-container {

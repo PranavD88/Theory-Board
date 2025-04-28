@@ -36,7 +36,16 @@
     text-align: center;
   }
   
-  .input,
+  .input {
+    width: 94.5%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: none;
+    background-color: var(--graphite);
+    color: var(--punkpink);
+  }
+
   .textarea,
   .select {
     width: 100%;

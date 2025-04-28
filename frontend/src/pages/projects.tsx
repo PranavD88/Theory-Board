@@ -112,6 +112,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
 
   return (
     <div style={{ backgroundColor: "#282c34", minHeight: "100vh", padding: "2rem", color: "white" }}>
+      <h1 style={{color: "red"}}> HELLO TEST </h1>
       <div className="Menu-button-list" style={{ marginBottom: "2rem", display: "flex", gap: "1rem" }}>
         <button
           onClick={toggleInput}
@@ -226,6 +227,7 @@ const Projects: React.FC<ProjectsProps> = ({ setIsAuthenticated }) => {
       </div>
     </div>
   );
+  
 };
 
 export default Projects;

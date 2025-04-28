@@ -56,7 +56,6 @@ const NoteWindow = ({
       }}
       minWidth={300}
       minHeight={100}
-      maxHeight={575}
       className="note-preview"
       dragHandleClassName="drag-handle"
       style={{ zIndex: 2000, }}
