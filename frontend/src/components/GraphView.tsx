@@ -24,6 +24,50 @@ export interface GraphViewHandles {
 searchNodes: (query: { title?: string; tag?: string; content?: string }) => void;
 }
 
+const nodePlacement = (cy: cytoscape.Core, spacing = 100) => {
+  const zoom = cy.zoom();
+  const pan = cy.pan();
+  const container = cy.container();
+  if (!container) {
+    return { x: 0, y: 0 };
+  }
+
+  const width = container.clientWidth / zoom;
+  const height = container.clientHeight / zoom;
+
+  const centerX = -pan.x / zoom + width / 2;
+  const centerY = -pan.y / zoom + height / 2;
+
+  const maxTries = 100;
+
+  for (let i = 0; i < maxTries; i++) {
+    const offsetX = (Math.random() - 0.5) * width * 0.8;
+    const offsetY = (Math.random() - 0.5) * height * 0.8;
+
+    const x = centerX + offsetX;
+    const y = centerY + offsetY;
+
+    const overlap = cy.nodes().some((n) => {
+      const pos = (n as cytoscape.NodeSingular).position();
+      const dx = pos.x - x;
+      const dy = pos.y - y;
+      return Math.sqrt(dx * dx + dy * dy) < spacing;
+    });
+
+    if (!overlap) {
+      return { x, y };
+    }
+  }
+
+  const directionX = Math.random() > 0.5 ? 1 : -1;
+  const directionY = Math.random() > 0.5 ? 1 : -1;
+
+  return {
+    x: centerX + directionX * (width / 2 + 150 + Math.random() * 50),
+    y: centerY + directionY * (height / 2 + 150 + Math.random() * 50),
+  };
+};
+
 type NoteType = {
   id: number;
   title: string;
@@ -440,16 +484,46 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
   useImperativeHandle(ref, () => ({
     addNode: (newNote: any) => {
-      cyRef.current?.add({
+      const cy = cyRef.current;
+      if (!cy) return;
+    
+      const position = nodePlacement(cy, 50);
+    
+      const newNode = cy.add({
         data: {
           id: `n${newNote.id}`,
           label: newNote.title,
           tags: newNote.tags || [],
           content: newNote.content || "",
         },
-        position: { x: Math.random() * 500, y: Math.random() * 500 },
+        position,
       });
+    
+      const container = cy.container();
+      const zoom = cy.zoom();
+      const pan = cy.pan();
+      const width = container?.clientWidth || 800;
+      const height = container?.clientHeight || 600;
+    
+      const left = -pan.x / zoom;
+      const top = -pan.y / zoom;
+      const right = left + width / zoom;
+      const bottom = top + height / zoom;
+    
+      const pos = newNode.position();
+    
+      const isOutOfView =
+        pos.x < left || pos.x > right || pos.y < top || pos.y > bottom;
+    
+      if (isOutOfView) {
+        cy.animate({
+          fit: { eles: cy.elements(), padding: 100 },
+          duration: 500,
+        });
+      }
     },
+    
+    
     addEdge: (fromId: number, toId: number) => {
       cyRef.current?.add({ data: { source: `n${fromId}`, target: `n${toId}` } });
     },
