@@ -26,6 +26,12 @@ const RichTextEditor: React.FC<{
     }
   }, [editor]);
 
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
   if (!editor) return null;
 
   return (
