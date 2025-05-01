@@ -1,0 +1,9 @@
+In the final sprint of our project, my primary focus was ensuring a uniform user interface (UI) across the entire program. Consistency in design improves usability, so I dedicated my efforts to refining styling elements such as colors, fonts, and component layouts. However, this process presented challenges, particularly when integrating my changes with the evolving codebase.
+
+One major obstacle I encountered was a merge conflict that arose because the code I wrote in Sprint 4 had become incompatible with recent updates. Since too many changes had been made since then, merging my work proved impossible, forcing me to reimplement my changes in a new branch. This experience highlighted the importance of keeping my branch updated with the main codebase to minimize integration issues.
+
+Despite these challenges, I learned valuable lessons about my strengths and areas for improvement. While I may not have fully understood the deeper syntax and logic behind some of my teammates' contributions, I realized that I could still contribute effectively by styling their components. This allowed me to work within my skill set while still supporting the team’s goals.
+
+Moving forward, I recognize the need for better communication with my teammates. By discussing their work earlier in the process, I can gain a clearer understanding of their code structure and prevent integration problems. Seeking their insights before making changes would help me avoid conflicts and ensure smoother collaboration.
+
+Ultimately, this sprint reinforced the importance of adaptability and teamwork in software development. By leveraging my strengths and improving communication, I can contribute more effectively to future projects.
