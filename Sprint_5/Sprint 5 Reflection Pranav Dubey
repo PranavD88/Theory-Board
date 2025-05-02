@@ -1,0 +1,25 @@
+During this sprint, I was able to accomplish and finish most of the project. My primary
+contributions included making multiple note functionalities, stable node positions so that they
+keep their position after refreshing or logging out, and logging in. I also added multiple graph
+openings and a projects page so that you can now create multiple graphs instead of being
+limited to just one graph.. Additionally, I added a search for notes using titles, added a search
+bar to the navigation, and a daily streak counter for a gamified aspect. One UI improvement I
+made was so that the nodes spawn in visible areas of the graph. Also, text fields clear after note
+creation, making sure that users are better able to utilize the note creation function.
+
+There were many challenges along the way, especially when working with the graph saving
+positions and switching between the projects. It took time to debug the issues where nodes
+would reset positions, or wrong project graphs would load. I fixed this by restructuring the
+frontend state logic and making sure that project IDs were passed to API calls. Another
+challenge was making sure that multiple note windows would not duplicate or overlap upon
+creation, which required tracking open note states and making sure they matched up with the
+graph nodes.
+
+Throughout this sprint, I learned about frontend state management. I got comfortable with
+creating features that keep data across sessions through backend integration and database
+updates.
+
+One area I could improve on again is putting in console logs while initially developing the
+project, so that I will be more properly prepared for any issues that come across, and be more
+prepared to debug. Also, I need to work better on breaking larger stories into smaller tasks and
+working more collaboratively with the team.
