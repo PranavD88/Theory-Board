@@ -13,3 +13,7 @@ To run the application, ensure the backend server is running on `http://localhos
 Make sure your PostgreSQL database is running and accessible with the credentials provided in the `.env` file. The project uses TypeScript, React, Express, and PostgreSQL, so ensure all dependencies are installed in both the `backend` and `frontend` directories. Keep your `.env` file secure and avoid committing it to version control.
 
 For backend scripts, use `npm run dev` to start the server in development mode, `npm run build` to compile TypeScript files, and `npm start` to run the compiled server. For frontend scripts, use `npm start` to start the development server, `npm run build` to build the frontend for production, and `npm test` to run tests.
+
+
+The project is accessible at:
+https://theory-board.onrender.com/
