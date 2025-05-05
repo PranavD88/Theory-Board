@@ -1,6 +1,8 @@
 import React, { useState, CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
+const apiBase = process.env.REACT_APP_API_BASE;
+
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -11,9 +13,6 @@ const RegisterPage: React.FC = () => {
 
   //Focus state tracker
   const [isFocused, setIsFocused] = useState(false);
-  //hover tracker
-  const [isHovered, setIsHovered] = useState(false);
-
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
@@ -22,7 +21,7 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${apiBase}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),

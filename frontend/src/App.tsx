@@ -8,6 +8,8 @@ import MenuButton from "./components/MenuButton";
 import Projects from "./pages/projects"; 
 import GraphPage from "./pages/GraphPage";
 
+const apiBase = process.env.REACT_APP_API_BASE;
+
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const graphRef = useRef<GraphViewHandles>(null);
@@ -15,7 +17,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/user", {
+        const response = await fetch(`${apiBase}/api/auth/user`, {
           method: "GET",
           credentials: "include",
         });

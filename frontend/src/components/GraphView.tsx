@@ -10,6 +10,8 @@ import cytoscape from "cytoscape";
 import "./GraphView.css";
 import NoteWindow from "./NoteWindow";
 
+const apiBase = process.env.REACT_APP_API_BASE;
+
 export interface GraphViewProps {
   projectId?: string;
 }
@@ -103,7 +105,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
     const loadNotes = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/notes?projectId=${projectId}`, {
+        const res = await fetch(`${apiBase}/api/notes?projectId=${projectId}`, {
           credentials: "include",
         });
 
@@ -156,7 +158,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
   const handleUpdateNote = useCallback(async (note: WindowedNote) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notes/${note.id}`, {
+      const res = await fetch(`${apiBase}/api/notes/${note.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -178,7 +180,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
   const handleDeleteNote = useCallback(async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
+      const res = await fetch(`${apiBase}/api/notes/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -193,7 +195,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
   const handleExportPDF = useCallback(async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notes/export/pdf/${id}`, {
+      const res = await fetch(`${apiBase}/api/notes/export/pdf/${id}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error();
@@ -211,7 +213,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
 
   const handleExportDOCX = useCallback(async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/notes/export/docx/${id}`, {
+      const res = await fetch(`${apiBase}/api/notes/export/docx/${id}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error();
@@ -310,7 +312,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
       const pos = node.position();
   
       try {
-        await fetch(`http://localhost:5000/api/notes/position/${id}`, {
+        await fetch(`${apiBase}/api/notes/position/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -328,7 +330,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
       const id = Number(rawId.replace(/^n/, ""));
   
       try {
-        const res = await fetch(`http://localhost:5000/api/notes/${id}`, {
+        const res = await fetch(`${apiBase}/api/notes/${id}`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch note");
@@ -423,7 +425,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
       await initializeCytoscape();
   
       try {
-        const res = await fetch(`http://localhost:5000/api/notes/graph?projectId=${projectId}`, {
+        const res = await fetch(`${apiBase}/api/notes/graph?projectId=${projectId}`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -463,7 +465,7 @@ const GraphView = forwardRef<GraphViewHandles, GraphViewProps>(({ projectId }, r
     const to = selectedEdge.target.slice(1);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/notes/unlink?from_note_id=${from}&to_note_id=${to}`,
+        `${apiBase}/api/notes/unlink?from_note_id=${from}&to_note_id=${to}`,
         { method: "DELETE", credentials: "include" }
       );
       if (!res.ok) throw new Error();

@@ -4,6 +4,8 @@ import TagInput from "./TagInput";
 import RichTextEditor from "./RichTextEditor";
 import "./MenuButton.css";
 
+const apiBase = process.env.REACT_APP_API_BASE;
+
 interface MenuButtonProps {
   setIsAuthenticated: (isAuth: boolean) => void;
   addNode: (newNote: any) => void;
@@ -34,13 +36,10 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   const [searchTag, setSearchTag] = useState("");
   const [searchContent, setSearchContent] = useState("");
 
-  //Focus state tracker
-  const [isFocused, setIsFocused] = useState(false);
-
   // Memoized function to fetch notes for the dropdown lists
   const fetchNotes = useCallback(async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/notes?projectId=${projectId}`, {
+      const response = await fetch(`${apiBase}/api/notes?projectId=${projectId}`, {
         method: "GET",
         credentials: "include",
       });
@@ -72,7 +71,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       return;
     }
   
-    const response = await fetch("http://localhost:5000/api/notes", {
+    const response = await fetch(`${apiBase}/api/notes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -131,7 +130,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
       return;
     }
 
-    const response = await fetch("http://localhost:5000/api/notes/link", {
+    const response = await fetch(`${apiBase}/api/notes/link`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -166,7 +165,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
     formData.append("file", file);
   
     try {
-      const response = await fetch("http://localhost:5000/api/notes/import/pdf", {
+      const response = await fetch(`${apiBase}/api/notes/import/pdf`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -213,7 +212,7 @@ const MenuButton: React.FC<MenuButtonProps> = ({
      
     // calls for alert system
     try {
-      const response = await fetch("http://localhost:5000/api/notes/import/docx", {
+      const response = await fetch(`${apiBase}/api/notes/import/docx`, {
         method: "POST",
         credentials: "include",
         body: formData,
