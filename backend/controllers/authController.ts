@@ -91,7 +91,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
     // Send token as HTTP-only cookie
     console.log("Setting cookie...");
-    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "strict" });
+    res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" });
     console.log("Login successful");
     res.json({ message: "Login successful" });
   } catch (error) {
@@ -122,7 +122,7 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 
 // Logout User
 const logout = (req: Request, res: Response): void => {
-  res.clearCookie("token", { httpOnly: true, secure: false, sameSite: "strict" });
+  res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "none" });
   res.status(200).json({ message: "Logged out successfully" });
 };
 export { register, login, getUser, logout };
